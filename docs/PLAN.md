@@ -49,8 +49,8 @@ Status: ✅ done · 🔜 next · ⬜ not started · ⛔ blocked on external inpu
 |---|------|--------|
 | 5.1 | README, ARCHITECTURE, DATABASE (ERD), API routes, DECISIONS & LIMITATIONS, feature inventory (complete / mocked / demo-only / future) | ✅ |
 | 5.2 | India compliance checklist, security notes, backup & recovery | ✅ |
-| 5.3 | API Dockerfile, AWS deployment guide, CI workflow, observability | 🔜 |
-| 5.4 | Final pass: format, typecheck, full test run, security review | ⬜ |
+| 5.3 | API Dockerfile, AWS deployment guide, CI workflow, observability | ✅ |
+| 5.4 | Final pass: format, typecheck, full test run, security review | 🔜 |
 
 ## External prerequisites (not code)
 | Item | Needed for | Status |
@@ -62,4 +62,5 @@ Status: ✅ done · 🔜 next · ⬜ not started · ⛔ blocked on external inpu
 | Legal, tax, payments-compliance and electrical-safety review | Any real launch | ⛔ |
 
 ## Notes
+- 5.3: Added API/web container builds, AWS release/rollback and monitoring runbook, and GitHub Actions for typechecks, tests and image builds. Local Node 22 typechecks and all 118 tests pass; API container readiness checks pass against local infrastructure. AWS deployment and hosted CI require their respective environments.
 - 1.2: Razorpay adapter (orders, capture, refunds, signature + webhook verification) is implemented against the documented REST API but has **not** been exercised against Razorpay sandbox — no test keys yet. All flows were verified end-to-end with the DEMO adapter.
