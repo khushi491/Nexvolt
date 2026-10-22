@@ -13,3 +13,4 @@ apps/mobile/android/
 test-results/
 playwright-report/
 *.tsbuildinfo
+apps/mobile/expo-env.d.ts
