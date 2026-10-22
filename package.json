@@ -5,7 +5,7 @@
   "description": "Nexvolt \u2014 peer-to-peer EV charging marketplace (MVP, not production-ready)",
   "packageManager": "pnpm@10.13.1",
   "engines": {
-    "node": ">=20.11"
+    "node": ">=22.13"
   },
   "scripts": {
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
