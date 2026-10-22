@@ -48,8 +48,8 @@ Status: ✅ done · 🔜 next · ⬜ not started · ⛔ blocked on external inpu
 | # | Task | Status |
 |---|------|--------|
 | 5.1 | README, ARCHITECTURE, DATABASE (ERD), API routes, DECISIONS & LIMITATIONS, feature inventory (complete / mocked / demo-only / future) | ✅ |
-| 5.2 | India compliance checklist, security notes, backup & recovery | 🔜 |
-| 5.3 | API Dockerfile, AWS deployment guide, CI workflow, observability | ⬜ |
+| 5.2 | India compliance checklist, security notes, backup & recovery | ✅ |
+| 5.3 | API Dockerfile, AWS deployment guide, CI workflow, observability | 🔜 |
 | 5.4 | Final pass: format, typecheck, full test run, security review | ⬜ |
 
 ## External prerequisites (not code)
