@@ -33,12 +33,12 @@ Status: ✅ done · 🔜 next · ⬜ not started · ⛔ blocked on external inpu
 | 3.1 | Scaffold Next.js + Tailwind + shadcn-style components, auth (OTP), layout/nav | ✅ |
 | 3.2 | Host: onboarding, KYC upload, charger wizard + documents/photos, availability builder, booking queue, sessions, earnings | ✅ |
 | 3.3 | Admin: overview, verification queues, users/chargers/bookings/payments, disputes, refunds, payouts, support, incidents, settings, audit, geo view | ✅ |
-| 3.4 | Playwright E2E: happy path + negative paths | 🔜 |
+| 3.4 | Playwright E2E: happy path + negative paths | ✅ |
 
 ## Phase 4 — Mobile app (Expo)
 | # | Task | Status |
 |---|------|--------|
-| 4.1 | Scaffold Expo Router app, theme + components, onboarding, OTP login + consent | ⬜ |
+| 4.1 | Scaffold Expo Router app, theme + components, onboarding, OTP login + consent | 🔜 |
 | 4.2 | Driver: profile, vehicles, Explore (map/list, filters), charger detail | ⬜ |
 | 4.3 | Driver: booking flow, payment (WebView checkout), booking detail, navigation, session, receipt, review, support | ⬜ |
 | 4.4 | Host mode: dashboard, chargers, calendar, earnings, booking queue + meter readings | ⬜ |

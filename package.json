@@ -2,7 +2,7 @@
   "name": "nexvolt",
   "private": true,
   "version": "0.1.0",
-  "description": "Nexvolt — peer-to-peer EV charging marketplace (MVP, not production-ready)",
+  "description": "Nexvolt \u2014 peer-to-peer EV charging marketplace (MVP, not production-ready)",
   "packageManager": "pnpm@10.13.1",
   "engines": {
     "node": ">=20.11"
@@ -21,7 +21,8 @@
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "e2e": "pnpm --filter @nexvolt/web e2e"
   },
   "devDependencies": {
     "prettier": "^3.3.3",

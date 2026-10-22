@@ -70,7 +70,7 @@ export function AvailabilityBuilder({ charger }: { charger: ChargerManageDto }) 
         </CardHeader>
         <CardContent className="space-y-3">
           {ORDER.map((d) => (
-            <div key={d} className="flex flex-col gap-2 border-b border-line pb-3 last:border-0 sm:flex-row sm:items-start">
+            <div key={d} role="group" aria-label={DAYS[d]} className="flex flex-col gap-2 border-b border-line pb-3 last:border-0 sm:flex-row sm:items-start">
               <p className="w-28 pt-2 text-sm font-semibold">{DAYS[d]}</p>
               <div className="flex-1 space-y-2">
                 {days[d]!.length === 0 && <p className="pt-2 text-sm text-slate-strong">Unavailable</p>}

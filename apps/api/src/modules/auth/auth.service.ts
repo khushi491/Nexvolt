@@ -13,7 +13,6 @@ export const TERMS_VERSION = '2026-10-v1';
 const OTP_TTL_MS = 5 * 60_000;
 const RESEND_AFTER_S = 30;
 const MAX_PER_PHONE_WINDOW = 5;
-const MAX_PER_IP_WINDOW = 20;
 const WINDOW_MS = 15 * 60_000;
 const MAX_VERIFY_ATTEMPTS = 5;
 
@@ -37,7 +36,7 @@ export class AuthService {
     if (latest && Date.now() - latest.createdAt.getTime() < RESEND_AFTER_S * 1000) {
       throw new AppError('OTP_COOLDOWN', `Please wait ${RESEND_AFTER_S} seconds before requesting another code`, HttpStatus.TOO_MANY_REQUESTS);
     }
-    if (byPhone >= MAX_PER_PHONE_WINDOW || byIp >= MAX_PER_IP_WINDOW) {
+    if (byPhone >= MAX_PER_PHONE_WINDOW || byIp >= this.env.OTP_REQUESTS_PER_15MIN_PER_IP) {
       throw new AppError('OTP_RATE_LIMITED', 'Too many code requests. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
     }
     const id = randomUUID();

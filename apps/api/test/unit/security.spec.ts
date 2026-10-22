@@ -81,6 +81,12 @@ describe('environment guards', () => {
     expect(() => loadEnv({ ...ok, NODE_ENV: 'production', LOCAL_DEMO_MODE: 'true', OTP_PROVIDER: 'twilio_verify', TWILIO_ACCOUNT_SID: 'a', TWILIO_AUTH_TOKEN: 'b', TWILIO_VERIFY_SERVICE_SID: 'c' })).toThrow(/LOCAL_DEMO_MODE/);
     expect(() => loadEnv({ ...ok, NODE_ENV: 'production' })).toThrow(/OTP_PROVIDER/);
   });
+  it('refuses relaxed OTP rate limits in production', () => {
+    const prod = { ...ok, NODE_ENV: 'production', OTP_PROVIDER: 'twilio_verify', TWILIO_ACCOUNT_SID: 'a', TWILIO_AUTH_TOKEN: 'b', TWILIO_VERIFY_SERVICE_SID: 'c' };
+    expect(() => loadEnv(prod)).not.toThrow();
+    expect(() => loadEnv({ ...prod, OTP_REQUESTS_PER_15MIN_PER_IP: '100' })).toThrow(/Relaxed OTP/);
+    expect(() => loadEnv({ ...prod, DISABLE_ROUTE_THROTTLING_FOR_TESTS: 'true' })).toThrow(/Route throttling/);
+  });
   it('refuses live Razorpay keys outside production and partial credentials', () => {
     expect(() => loadEnv({ ...ok, RAZORPAY_KEY_ID: 'rzp_live_x', RAZORPAY_KEY_SECRET: 's', RAZORPAY_WEBHOOK_SECRET: 'w' })).toThrow(/Live Razorpay/);
     expect(() => loadEnv({ ...ok, RAZORPAY_KEY_ID: 'rzp_test_x' })).toThrow(/RAZORPAY/);

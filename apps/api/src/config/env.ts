@@ -28,6 +28,10 @@ const EnvSchema = z
 
     OTP_PROVIDER: z.enum(['emulator', 'twilio_verify']).default('emulator'),
     OTP_HMAC_SECRET: z.string().min(32),
+    /** Per-IP OTP request limit (DB-enforced). Raise only for automated test environments. */
+    OTP_REQUESTS_PER_15MIN_PER_IP: z.coerce.number().int().min(1).max(10000).default(20),
+    /** Skips per-route HTTP throttling so E2E suites from one IP aren't blocked. Forbidden in production. */
+    DISABLE_ROUTE_THROTTLING_FOR_TESTS: bool,
     OTP_EMULATOR_FIXED_CODE: z
       .string()
       .regex(/^\d{6}$/)
@@ -65,6 +69,12 @@ const EnvSchema = z
       }
       if (env.OTP_PROVIDER === 'emulator') {
         ctx.addIssue({ code: 'custom', path: ['OTP_PROVIDER'], message: 'OTP emulator is forbidden in production' });
+      }
+      if (env.OTP_REQUESTS_PER_15MIN_PER_IP > 50) {
+        ctx.addIssue({ code: 'custom', path: ['OTP_REQUESTS_PER_15MIN_PER_IP'], message: 'Relaxed OTP rate limits are not allowed in production' });
+      }
+      if (env.DISABLE_ROUTE_THROTTLING_FOR_TESTS) {
+        ctx.addIssue({ code: 'custom', path: ['DISABLE_ROUTE_THROTTLING_FOR_TESTS'], message: 'Route throttling cannot be disabled in production' });
       }
       if (env.OTP_EMULATOR_FIXED_CODE) {
         ctx.addIssue({ code: 'custom', path: ['OTP_EMULATOR_FIXED_CODE'], message: 'Fixed OTP codes are forbidden in production' });

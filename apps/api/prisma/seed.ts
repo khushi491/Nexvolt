@@ -22,6 +22,7 @@ function enc(plain: string | null): string | null {
 
 export const DEMO_ACCOUNTS = {
   admin: '+919000000001',
+  opsAdmin: '+919000000004',
   host: '+919000000002',
   driver: '+919000000003',
 };
@@ -61,6 +62,11 @@ async function main() {
   const admin = await prisma.user.upsert({
     where: { phone: DEMO_ACCOUNTS.admin },
     create: { phone: DEMO_ACCOUNTS.admin, name: 'Asha Admin (Sample)', roles: ['ADMIN', 'DRIVER'], ...consent, driverProfile: { create: {} } },
+    update: {},
+  });
+  await prisma.user.upsert({
+    where: { phone: DEMO_ACCOUNTS.opsAdmin },
+    create: { phone: DEMO_ACCOUNTS.opsAdmin, name: 'Arjun Ops Admin (Sample)', roles: ['ADMIN'], ...consent, driverProfile: { create: {} } },
     update: {},
   });
   const hostUser = await prisma.user.upsert({
@@ -128,7 +134,7 @@ async function main() {
       WHERE id = ${ch.id}::uuid`;
   }
   console.log('Demo accounts (OTP emulator code from OTP_EMULATOR_FIXED_CODE):');
-  console.log(`  admin  ${DEMO_ACCOUNTS.admin}\n  host   ${DEMO_ACCOUNTS.host}\n  driver ${DEMO_ACCOUNTS.driver}`);
+  console.log(`  admin  ${DEMO_ACCOUNTS.admin}\n  admin2 ${DEMO_ACCOUNTS.opsAdmin} (used by API-level E2E tests)\n  host   ${DEMO_ACCOUNTS.host}\n  driver ${DEMO_ACCOUNTS.driver}`);
 }
 
 main()

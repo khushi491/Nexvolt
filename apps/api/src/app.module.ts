@@ -49,8 +49,9 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
     }),
     ThrottlerModule.forRoot({
       throttlers: [{ name: 'default', ttl: 60_000, limit: 120 }],
-      // Integration tests exercise many requests from one IP; DB-level OTP limits still apply.
-      skipIf: () => env().NODE_ENV === 'test' && process.env.THROTTLE_IN_TESTS !== 'true',
+      // Automated tests send many requests from one IP; DB-level OTP limits still apply.
+      // Env validation forbids DISABLE_ROUTE_THROTTLING_FOR_TESTS in production.
+      skipIf: () => (env().NODE_ENV === 'test' && process.env.THROTTLE_IN_TESTS !== 'true') || env().DISABLE_ROUTE_THROTTLING_FOR_TESTS,
     }),
     jwtModule,
     PrismaModule,
