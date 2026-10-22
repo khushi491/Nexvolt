@@ -24,8 +24,8 @@ Status: ✅ done · 🔜 next · ⬜ not started · ⛔ blocked on external inpu
 ## Phase 2 — Shared client + design system
 | # | Task | Status |
 |---|------|--------|
-| 2.1 | `packages/api-client` typed client + OpenAPI export script | 🔜 |
-| 2.2 | Design tokens package (palette, type, spacing) | ⬜ |
+| 2.1 | `packages/api-client` typed client + OpenAPI export script | ✅ |
+| 2.2 | Design tokens package (palette, type, spacing) | 🔜 |
 
 ## Phase 3 — Web portal (Next.js, host + admin)
 | # | Task | Status |

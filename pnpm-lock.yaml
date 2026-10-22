@@ -121,6 +121,19 @@ importers:
         specifier: ~5.6.3
         version: 5.6.3
 
+  packages/api-client:
+    dependencies:
+      '@nexvolt/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      typescript:
+        specifier: ~5.6.3
+        version: 5.6.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/node@20.19.43)(jiti@2.7.0)(terser@5.51.2)
+
   packages/shared:
     dependencies:
       zod:

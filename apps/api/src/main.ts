@@ -1,8 +1,10 @@
 import 'dotenv/config';
 import 'reflect-metadata';
-import { NestFactory } from '@nestjs/core';
+import { ModulesContainer, NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { zodToOpenAPI } from 'nestjs-zod';
+import type { ZodTypeAny } from 'zod';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { env } from './config/env';
@@ -14,7 +16,22 @@ export function buildOpenApi(app: Awaited<ReturnType<typeof NestFactory.create>>
     .setVersion(env().APP_VERSION)
     .addBearerAuth()
     .build();
-  return SwaggerModule.createDocument(app, config);
+  const doc = SwaggerModule.createDocument(app, config);
+  // Fill DTO component schemas from their zod definitions (single source of truth with validation).
+  const schemas = (doc.components ??= {}).schemas ??= {};
+  for (const mod of app.get(ModulesContainer).values()) {
+    for (const ctrl of mod.controllers.values()) {
+      const proto = (ctrl.metatype as { prototype?: object } | null)?.prototype;
+      if (!proto) continue;
+      for (const key of Object.getOwnPropertyNames(proto)) {
+        const types: unknown[] = Reflect.getMetadata('design:paramtypes', proto, key) ?? [];
+        for (const t of types as Array<{ name?: string; isZodDto?: boolean; schema?: ZodTypeAny }>) {
+          if (t?.isZodDto && t.schema && t.name) schemas[t.name] = zodToOpenAPI(t.schema) as never;
+        }
+      }
+    }
+  }
+  return doc;
 }
 
 async function bootstrap() {
