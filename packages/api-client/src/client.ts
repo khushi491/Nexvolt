@@ -30,6 +30,11 @@ export interface ClientOptions {
   fetch?: typeof fetch;
   /** Called when the session cannot be refreshed (show login). */
   onSessionExpired?: () => void;
+  /**
+   * Custom refresh (e.g. a same-origin route that holds the refresh token in an httpOnly
+   * cookie). Returns the new access token, or null when the session is over.
+   */
+  refresh?: () => Promise<string | null>;
 }
 
 export type Query = Record<string, string | number | boolean | undefined | null>;
@@ -122,6 +127,11 @@ export class HttpClient {
     if (!this.refreshing) {
       this.refreshing = (async () => {
         try {
+          if (this.opts.refresh) {
+            const access = await this.opts.refresh();
+            if (!access) await this.opts.tokens?.clear();
+            return !!access;
+          }
           const rt = await this.opts.tokens?.getRefreshToken();
           if (!rt) return false;
           const res = await this.fetchImpl(this.url('/auth/refresh'), {
