@@ -296,6 +296,7 @@ export class PaymentsService {
 
       if (booking.status === 'EXPIRED') {
         // Late payment: re-confirm only if the slot is still free (exclusion constraint decides).
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${booking.chargerId}, 0))`;
         await tx.$executeRawUnsafe('SAVEPOINT late_confirm');
         try {
           const confirmed = await this.transitions.transition(tx, booking, 'CONFIRMED', SYSTEM, { reason: 'Late payment; slot still available' });

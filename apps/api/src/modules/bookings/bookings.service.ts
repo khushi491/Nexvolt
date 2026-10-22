@@ -192,6 +192,10 @@ export class BookingsService {
       let created: Booking;
       try {
         created = await this.prisma.$transaction(async (tx) => {
+          // Serialise capacity changes per charger. Concurrent overlapping inserts under the GiST
+          // exclusion constraint can otherwise deadlock (40P01) and all fail; this lock makes
+          // contenders queue so exactly one wins. Other chargers are unaffected.
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${p.charger.id}, 0))`;
           await this.transitions.expireStaleHolds(tx, p.charger.id);
           const ctx = await this.availability.context(p.charger, p.start, p.end, { tx });
           if (!validateSlot({ start: p.start, end: p.end, now, ...ctx }).ok) {
