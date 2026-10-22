@@ -314,7 +314,8 @@ export class BookingsService {
 
   async cancel(user: AuthUser, id: string, reason: string, meta?: RequestMeta): Promise<BookingDto> {
     const before = await this.load(id);
-    const actor = this.actorFor(user, before);
+    // Only full admins may cancel on the platform's behalf (it always refunds in full).
+    const actor = this.actorFor(user, before, user.isAdmin);
     if (actor.type === 'DRIVER' && !['AWAITING_HOST_APPROVAL', 'HELD', 'PENDING_PAYMENT', 'CONFIRMED'].includes(before.status)) {
       throw AppError.conflict('NOT_CANCELLABLE', 'This booking can no longer be cancelled. Contact support if something went wrong.');
     }
