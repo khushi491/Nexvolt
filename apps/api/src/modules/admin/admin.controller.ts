@@ -26,6 +26,9 @@ import { BookingsService } from '../bookings/bookings.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { SettingsService } from '../settings/settings.service';
 import { AdminFinanceService } from './admin-finance.service';
+import { AuditService } from '../../common/audit/audit.service';
+import { AppError } from '../../common/errors/app-error';
+import { MAINTENANCE_TASKS, MaintenanceService, type MaintenanceTask } from '../jobs/maintenance.service';
 import { AdminVerificationService } from './admin-verification.service';
 
 class PageDto extends createZodDto(PaginationSchema) {}
@@ -60,7 +63,19 @@ export class AdminController {
     private readonly ledger: LedgerService,
     private readonly settings: SettingsService,
     private readonly bookings: BookingsService,
+    private readonly maintenance: MaintenanceService,
+    private readonly audit: AuditService,
   ) {}
+
+  /** Run a maintenance task now (normally scheduled by BullMQ). */
+  @Post('maintenance/:task')
+  @HttpCode(200)
+  async runMaintenance(@Param('task') task: string, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+    if (!(MAINTENANCE_TASKS as readonly string[]).includes(task)) throw AppError.notFound('Task');
+    const r = await this.maintenance.run(task as MaintenanceTask);
+    await this.audit.log({ actor: u, action: 'maintenance.run', resourceType: 'Maintenance', resourceId: task, newValue: r, meta: m });
+    return r;
+  }
 
   @Roles('ADMIN', 'SUPPORT')
   @Get('overview')

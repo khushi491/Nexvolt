@@ -57,7 +57,7 @@ export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(PUSH_PROVIDER) private readonly push: PushProvider,
-    @Optional() @Inject(PUSH_QUEUE) private readonly queue?: Queue,
+    @Optional() @Inject(PUSH_QUEUE) private readonly queue?: Queue | null,
   ) {}
 
   /**
