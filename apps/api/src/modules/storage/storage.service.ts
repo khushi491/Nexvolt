@@ -54,6 +54,10 @@ export class StorageService implements OnModuleInit {
     const configured = !!(env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY) || !env.S3_ENDPOINT;
     const base = {
       region: env.S3_REGION,
+      // Presigned PUTs are signed before the body exists; SDK default checksums would embed the
+      // checksum of an empty payload and make every client upload fail.
+      requestChecksumCalculation: 'WHEN_REQUIRED' as const,
+      responseChecksumValidation: 'WHEN_REQUIRED' as const,
       forcePathStyle: env.S3_FORCE_PATH_STYLE,
       credentials:
         env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY

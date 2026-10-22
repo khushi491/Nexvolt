@@ -14,6 +14,7 @@ import { RedisModule } from './common/redis/redis.module';
 import { ConfigModule } from './config/config.module';
 import { env } from './config/env';
 import { AuthModule, jwtModule } from './modules/auth/auth.module';
+import { SessionsModule } from './modules/sessions/sessions.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { BookingCoreModule } from './modules/booking-core/booking-core.module';
@@ -61,6 +62,7 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
     ChargersModule,
     BookingsModule,
     PaymentsModule,
+    SessionsModule,
   ],
   controllers: [HealthController],
   providers: [
