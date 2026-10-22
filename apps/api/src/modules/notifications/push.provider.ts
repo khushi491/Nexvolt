@@ -48,7 +48,10 @@ export class FcmPushProvider implements PushProvider {
     const res = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: `${header}.${claims}.${sig}` }),
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: `${header}.${claims}.${sig}`,
+      }),
       signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) throw new Error(`FCM auth failed: HTTP ${res.status}`);
@@ -60,12 +63,24 @@ export class FcmPushProvider implements PushProvider {
   async send(msg: PushMessage) {
     if (!this.enabled) return 'disabled' as const;
     try {
-      const res = await fetch(`https://fcm.googleapis.com/v1/projects/${this.env.FCM_PROJECT_ID}/messages:send`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${await this.accessToken()}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: { token: msg.token, notification: { title: msg.title, body: msg.body }, data: msg.data } }),
-        signal: AbortSignal.timeout(10_000),
-      });
+      const res = await fetch(
+        `https://fcm.googleapis.com/v1/projects/${this.env.FCM_PROJECT_ID}/messages:send`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${await this.accessToken()}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: {
+              token: msg.token,
+              notification: { title: msg.title, body: msg.body },
+              data: msg.data,
+            },
+          }),
+          signal: AbortSignal.timeout(10_000),
+        },
+      );
       if (res.status === 404 || res.status === 400) return 'invalid_token' as const;
       return res.ok ? ('sent' as const) : ('failed' as const);
     } catch (e) {

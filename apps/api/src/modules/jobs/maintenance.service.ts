@@ -4,7 +4,14 @@ import { BookingsService } from '../bookings/bookings.service';
 import { PaymentsService } from '../payments/payments.service';
 import { RefundsService } from '../payments/refunds.service';
 
-export const MAINTENANCE_TASKS = ['expire-holds', 'settle-bookings', 'reconcile-payments', 'reconcile-refunds', 'send-reminders', 'purge-idempotency'] as const;
+export const MAINTENANCE_TASKS = [
+  'expire-holds',
+  'settle-bookings',
+  'reconcile-payments',
+  'reconcile-refunds',
+  'send-reminders',
+  'purge-idempotency',
+] as const;
 export type MaintenanceTask = (typeof MAINTENANCE_TASKS)[number];
 
 /** How often each task runs when JOBS_ENABLED=true. */

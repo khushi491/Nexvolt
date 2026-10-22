@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { availableSlots, openRangesForDate, validateSlot, type SlotConstraints, type WeeklyRule } from '../src/availability';
+import {
+  availableSlots,
+  openRangesForDate,
+  validateSlot,
+  type SlotConstraints,
+  type WeeklyRule,
+} from '../src/availability';
 import { intervalsOverlap, istToUtc, toIstParts } from '../src/time';
 
 const constraints: SlotConstraints = {
@@ -46,43 +52,87 @@ describe('availability', () => {
   });
   it('custom hours replace weekly rules for that date', () => {
     expect(
-      openRangesForDate(DATE, rules, [{ date: DATE, type: 'CUSTOM_HOURS', startMinute: 600, endMinute: 660 }]),
+      openRangesForDate(DATE, rules, [
+        { date: DATE, type: 'CUSTOM_HOURS', startMinute: 600, endMinute: 660 },
+      ]),
     ).toEqual([[600, 660]]);
   });
   it('accepts a slot inside a window and rejects one crossing its edge', () => {
     const base = { now, rules, exceptions: [], constraints, busy: [] };
-    expect(validateSlot({ ...base, start: istToUtc(DATE, 600), end: istToUtc(DATE, 660) })).toEqual({ ok: true });
-    expect(validateSlot({ ...base, start: istToUtc(DATE, 1050), end: istToUtc(DATE, 1110) })).toEqual({
+    expect(validateSlot({ ...base, start: istToUtc(DATE, 600), end: istToUtc(DATE, 660) })).toEqual(
+      { ok: true },
+    );
+    expect(
+      validateSlot({ ...base, start: istToUtc(DATE, 1050), end: istToUtc(DATE, 1110) }),
+    ).toEqual({
       ok: false,
       reason: 'OUTSIDE_AVAILABILITY',
     });
   });
   it('allows a slot spanning midnight when windows are contiguous', () => {
     const base = { now, rules, exceptions: [], constraints, busy: [] };
-    expect(validateSlot({ ...base, start: istToUtc(DATE, 23 * 60), end: istToUtc('2026-10-22', 60) })).toEqual({ ok: true });
+    expect(
+      validateSlot({ ...base, start: istToUtc(DATE, 23 * 60), end: istToUtc('2026-10-22', 60) }),
+    ).toEqual({ ok: true });
   });
   it('enforces min/max duration, alignment, lead time and horizon', () => {
     const base = { now, rules, exceptions: [], constraints, busy: [] };
     const s = istToUtc(DATE, 600);
-    expect(validateSlot({ ...base, start: s, end: istToUtc(DATE, 615) })).toMatchObject({ reason: 'TOO_SHORT' });
-    expect(validateSlot({ ...base, start: s, end: istToUtc(DATE, 1000) })).toMatchObject({ reason: 'MISALIGNED' });
-    expect(validateSlot({ ...base, start: s, end: istToUtc(DATE, 900) })).toMatchObject({ reason: 'TOO_LONG' });
-    expect(validateSlot({ ...base, now: new Date(s.getTime() - 5 * 60_000), start: s, end: istToUtc(DATE, 660) })).toMatchObject({ reason: 'TOO_SOON' });
-    expect(validateSlot({ ...base, now: new Date('2026-09-01T00:00Z'), start: s, end: istToUtc(DATE, 660) })).toMatchObject({ reason: 'TOO_FAR_AHEAD' });
+    expect(validateSlot({ ...base, start: s, end: istToUtc(DATE, 615) })).toMatchObject({
+      reason: 'TOO_SHORT',
+    });
+    expect(validateSlot({ ...base, start: s, end: istToUtc(DATE, 1000) })).toMatchObject({
+      reason: 'MISALIGNED',
+    });
+    expect(validateSlot({ ...base, start: s, end: istToUtc(DATE, 900) })).toMatchObject({
+      reason: 'TOO_LONG',
+    });
+    expect(
+      validateSlot({
+        ...base,
+        now: new Date(s.getTime() - 5 * 60_000),
+        start: s,
+        end: istToUtc(DATE, 660),
+      }),
+    ).toMatchObject({ reason: 'TOO_SOON' });
+    expect(
+      validateSlot({
+        ...base,
+        now: new Date('2026-09-01T00:00Z'),
+        start: s,
+        end: istToUtc(DATE, 660),
+      }),
+    ).toMatchObject({ reason: 'TOO_FAR_AHEAD' });
   });
   it('respects buffers around existing bookings (both directions)', () => {
     const existing = { start: istToUtc(DATE, 600), blockedUntil: istToUtc(DATE, 660 + 15) }; // 10:00–11:00 + 15m buffer
     const base = { now, rules, exceptions: [], constraints, busy: [existing] };
     // Starts inside the buffer after the existing booking.
-    expect(validateSlot({ ...base, start: istToUtc(DATE, 660), end: istToUtc(DATE, 720) })).toMatchObject({ reason: 'OVERLAPS_EXISTING' });
-    expect(validateSlot({ ...base, start: istToUtc(DATE, 675), end: istToUtc(DATE, 735) })).toEqual({ ok: true });
+    expect(
+      validateSlot({ ...base, start: istToUtc(DATE, 660), end: istToUtc(DATE, 720) }),
+    ).toMatchObject({ reason: 'OVERLAPS_EXISTING' });
+    expect(validateSlot({ ...base, start: istToUtc(DATE, 675), end: istToUtc(DATE, 735) })).toEqual(
+      { ok: true },
+    );
     // Ends right at the existing start, but its own buffer would overlap.
-    expect(validateSlot({ ...base, start: istToUtc(DATE, 540), end: istToUtc(DATE, 600) })).toMatchObject({ reason: 'OVERLAPS_EXISTING' });
-    expect(validateSlot({ ...base, start: istToUtc(DATE, 540), end: istToUtc(DATE, 585) })).toEqual({ ok: true });
+    expect(
+      validateSlot({ ...base, start: istToUtc(DATE, 540), end: istToUtc(DATE, 600) }),
+    ).toMatchObject({ reason: 'OVERLAPS_EXISTING' });
+    expect(validateSlot({ ...base, start: istToUtc(DATE, 540), end: istToUtc(DATE, 585) })).toEqual(
+      { ok: true },
+    );
   });
   it('lists only free start times', () => {
     const existing = { start: istToUtc(DATE, 600), blockedUntil: istToUtc(DATE, 675) };
-    const slots = availableSlots({ localDate: DATE, durationMinutes: 60, now, rules, exceptions: [], constraints, busy: [existing] });
+    const slots = availableSlots({
+      localDate: DATE,
+      durationMinutes: 60,
+      now,
+      rules,
+      exceptions: [],
+      constraints,
+      busy: [existing],
+    });
     const starts = slots.map((s) => toIstParts(s.start).minuteOfDay);
     expect(starts).not.toContain(540); // 09:00–10:00 + 15m buffer would overlap 10:00
     expect(starts).not.toContain(570);

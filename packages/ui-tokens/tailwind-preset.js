@@ -16,9 +16,22 @@ module.exports = {
   theme: {
     extend: {
       colors: p,
-      fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'] },
+      fontFamily: {
+        sans: [
+          'Inter',
+          'ui-sans-serif',
+          'system-ui',
+          '-apple-system',
+          'Segoe UI',
+          'Roboto',
+          'sans-serif',
+        ],
+      },
       borderRadius: { sm: '8px', md: '12px', lg: '16px', xl: '24px' },
-      boxShadow: { card: '0 1px 2px rgba(16,31,53,0.06), 0 4px 16px rgba(16,31,53,0.06)', raised: '0 8px 32px rgba(16,31,53,0.12)' },
+      boxShadow: {
+        card: '0 1px 2px rgba(16,31,53,0.06), 0 4px 16px rgba(16,31,53,0.06)',
+        raised: '0 8px 32px rgba(16,31,53,0.12)',
+      },
       minHeight: { touch: '44px' },
     },
   },

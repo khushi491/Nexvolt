@@ -18,7 +18,8 @@ export const onSessionChange = (fn: Listener): (() => void) => {
 /** Refresh token lives in the OS keychain/keystore (SecureStore); access token only in memory. */
 const secure = {
   get: async () => (Platform.OS === 'web' ? null : SecureStore.getItemAsync(RT_KEY)),
-  set: async (v: string) => (Platform.OS === 'web' ? undefined : SecureStore.setItemAsync(RT_KEY, v)),
+  set: async (v: string) =>
+    Platform.OS === 'web' ? undefined : SecureStore.setItemAsync(RT_KEY, v),
   clear: async () => (Platform.OS === 'web' ? undefined : SecureStore.deleteItemAsync(RT_KEY)),
 };
 
@@ -35,13 +36,21 @@ const tokens: TokenStore = {
   },
 };
 
-export const api = new NexvoltApi({ baseUrl: API_URL, tokens, onSessionExpired: () => listeners.forEach((l) => l(null)) });
+export const api = new NexvoltApi({
+  baseUrl: API_URL,
+  tokens,
+  onSessionExpired: () => listeners.forEach((l) => l(null)),
+});
 
 export async function restoreSession(): Promise<UserDto | null> {
   const rt = await secure.get();
   if (!rt) return null;
   try {
-    const res = await fetch(`${API_URL}/api/v1/auth/refresh`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: rt }) });
+    const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: rt }),
+    });
     if (!res.ok) {
       await tokens.clear();
       return null;
@@ -54,7 +63,12 @@ export async function restoreSession(): Promise<UserDto | null> {
   }
 }
 
-export async function signIn(input: { phone: string; code: string; acceptTerms?: boolean; termsVersion?: string }): Promise<UserDto> {
+export async function signIn(input: {
+  phone: string;
+  code: string;
+  acceptTerms?: boolean;
+  termsVersion?: string;
+}): Promise<UserDto> {
   const auth = await api.auth.verifyOtp(input);
   await tokens.setTokens(auth);
   listeners.forEach((l) => l(auth.user));

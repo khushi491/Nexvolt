@@ -29,7 +29,6 @@ import {
 const enumOf = <T extends Record<string, string>>(o: T) =>
   z.enum(Object.values(o) as [T[keyof T], ...T[keyof T][]]);
 
-
 export const zConnectorType = enumOf(ConnectorType);
 export const zCurrentType = enumOf(CurrentType);
 
@@ -234,7 +233,13 @@ export const UpdateChargerSchema = z.object(chargerBase).partial();
 export const AvailabilitySchema = z
   .object({
     rules: z
-      .array(z.object({ dayOfWeek: z.number().int().min(0).max(6), startMinute: zMinute, endMinute: zMinute }))
+      .array(
+        z.object({
+          dayOfWeek: z.number().int().min(0).max(6),
+          startMinute: zMinute,
+          endMinute: zMinute,
+        }),
+      )
       .max(50),
     bufferMinutes: z.number().int().min(0).max(120),
     minDurationMinutes: z.number().int().min(15).max(720),
@@ -264,7 +269,9 @@ export const CreateExceptionSchema = z
     reason: z.string().trim().max(200).optional().nullable(),
   })
   .refine(
-    (v) => v.type === 'BLACKOUT' || (v.startMinute != null && v.endMinute != null && v.endMinute > v.startMinute),
+    (v) =>
+      v.type === 'BLACKOUT' ||
+      (v.startMinute != null && v.endMinute != null && v.endMinute > v.startMinute),
     { message: 'Custom hours need a start and end', path: ['endMinute'] },
   );
 

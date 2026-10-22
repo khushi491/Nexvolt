@@ -41,9 +41,17 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
       pinoHttp: {
         level: env().LOG_LEVEL,
         genReqId: (req) => (req.headers['x-request-id'] as string) || randomUUID(),
-        transport: env().NODE_ENV === 'development' ? { target: 'pino-pretty', options: { singleLine: true } } : undefined,
+        transport:
+          env().NODE_ENV === 'development'
+            ? { target: 'pino-pretty', options: { singleLine: true } }
+            : undefined,
         // Never log credentials, OTPs, tokens or payment signatures.
-        redact: ['req.headers.authorization', 'req.headers.cookie', 'req.headers["x-razorpay-signature"]', 'req.headers["idempotency-key"]'],
+        redact: [
+          'req.headers.authorization',
+          'req.headers.cookie',
+          'req.headers["x-razorpay-signature"]',
+          'req.headers["idempotency-key"]',
+        ],
         autoLogging: { ignore: (req) => req.url?.startsWith('/api/v1/health') ?? false },
       },
     }),
@@ -51,7 +59,9 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
       throttlers: [{ name: 'default', ttl: 60_000, limit: 120 }],
       // Automated tests send many requests from one IP; DB-level OTP limits still apply.
       // Env validation forbids DISABLE_ROUTE_THROTTLING_FOR_TESTS in production.
-      skipIf: () => (env().NODE_ENV === 'test' && process.env.THROTTLE_IN_TESTS !== 'true') || env().DISABLE_ROUTE_THROTTLING_FOR_TESTS,
+      skipIf: () =>
+        (env().NODE_ENV === 'test' && process.env.THROTTLE_IN_TESTS !== 'true') ||
+        env().DISABLE_ROUTE_THROTTLING_FOR_TESTS,
     }),
     jwtModule,
     PrismaModule,

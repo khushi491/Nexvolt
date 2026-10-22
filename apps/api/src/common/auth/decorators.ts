@@ -18,9 +18,11 @@ export const CurrentUser = createParamDecorator((_: unknown, ctx: ExecutionConte
   return ctx.switchToHttp().getRequest().user;
 });
 
-export const MaybeUser = createParamDecorator((_: unknown, ctx: ExecutionContext): AuthUser | undefined => {
-  return ctx.switchToHttp().getRequest().user;
-});
+export const MaybeUser = createParamDecorator(
+  (_: unknown, ctx: ExecutionContext): AuthUser | undefined => {
+    return ctx.switchToHttp().getRequest().user;
+  },
+);
 
 export interface RequestMeta {
   ip: string | null;

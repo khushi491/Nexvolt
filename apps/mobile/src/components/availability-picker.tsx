@@ -12,7 +12,17 @@ export interface SlotChoice {
 }
 
 /** Day + duration + start-time picker backed by the server's availability (IST). */
-export function AvailabilityPicker({ chargerId, minDuration, maxDuration, date, setDate, duration, setDuration, value, onChange }: {
+export function AvailabilityPicker({
+  chargerId,
+  minDuration,
+  maxDuration,
+  date,
+  setDate,
+  duration,
+  setDuration,
+  value,
+  onChange,
+}: {
   chargerId: string;
   minDuration: number;
   maxDuration: number;
@@ -25,22 +35,52 @@ export function AvailabilityPicker({ chargerId, minDuration, maxDuration, date, 
 }) {
   const days = Array.from({ length: 7 }, (_, i) => istDateKey(addMinutes(new Date(), i * 1440)));
   const durations = [30, 60, 90, 120, 180, 240].filter((m) => m >= minDuration && m <= maxDuration);
-  const q = useQuery({ queryKey: ['availability', chargerId, date, duration], queryFn: () => api.chargers.availability(chargerId, date, duration) });
+  const q = useQuery({
+    queryKey: ['availability', chargerId, date, duration],
+    queryFn: () => api.chargers.availability(chargerId, date, duration),
+  });
   return (
     <View style={{ gap: spacing[3] }}>
       <T.H3>When</T.H3>
       <Row>
-        {days.map((d, i) => <Chip key={d} label={i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : istDay(`${d}T12:00:00+05:30`)} selected={d === date} onPress={() => setDate(d)} />)}
+        {days.map((d, i) => (
+          <Chip
+            key={d}
+            label={i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : istDay(`${d}T12:00:00+05:30`)}
+            selected={d === date}
+            onPress={() => setDate(d)}
+          />
+        ))}
       </Row>
       <T.H3>Duration</T.H3>
-      <Row>{durations.map((m) => <Chip key={m} label={m < 60 ? `${m} min` : `${m / 60} h`} selected={m === duration} onPress={() => setDuration(m)} />)}</Row>
+      <Row>
+        {durations.map((m) => (
+          <Chip
+            key={m}
+            label={m < 60 ? `${m} min` : `${m / 60} h`}
+            selected={m === duration}
+            onPress={() => setDuration(m)}
+          />
+        ))}
+      </Row>
       <T.H3>Start time (IST)</T.H3>
-      {q.isLoading ? <SkeletonCards count={1} /> : !q.data?.slots.length ? (
-        <EmptyState icon="time-outline" title="No free slots" body="Try another day or a shorter duration." />
+      {q.isLoading ? (
+        <SkeletonCards count={1} />
+      ) : !q.data?.slots.length ? (
+        <EmptyState
+          icon="time-outline"
+          title="No free slots"
+          body="Try another day or a shorter duration."
+        />
       ) : (
         <Row>
           {q.data.slots.map((s) => (
-            <Chip key={s.startAt} label={istTime(s.startAt)} selected={value?.startAt === s.startAt} onPress={() => onChange({ startAt: s.startAt, endAt: s.endAt })} />
+            <Chip
+              key={s.startAt}
+              label={istTime(s.startAt)}
+              selected={value?.startAt === s.startAt}
+              onPress={() => onChange({ startAt: s.startAt, endAt: s.endAt })}
+            />
           ))}
         </Row>
       )}

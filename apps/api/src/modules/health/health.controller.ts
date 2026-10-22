@@ -30,7 +30,9 @@ export class HealthController {
   @Get()
   async health(): Promise<HealthDto> {
     const checks: HealthDto['checks'] = {};
-    checks.database = await this.prisma.$queryRaw`SELECT 1`.then(() => 'ok' as const).catch(() => 'fail' as const);
+    checks.database = await this.prisma.$queryRaw`SELECT 1`
+      .then(() => 'ok' as const)
+      .catch(() => 'fail' as const);
     checks.redis = await this.redis
       .ping()
       .then(() => 'ok' as const)

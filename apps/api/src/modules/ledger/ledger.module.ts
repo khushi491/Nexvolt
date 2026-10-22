@@ -3,5 +3,9 @@ import { HostEarningsController } from './ledger.controller';
 import { LedgerService } from './ledger.service';
 
 @Global()
-@Module({ controllers: [HostEarningsController], providers: [LedgerService], exports: [LedgerService] })
+@Module({
+  controllers: [HostEarningsController],
+  providers: [LedgerService],
+  exports: [LedgerService],
+})
 export class LedgerModule {}

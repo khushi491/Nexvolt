@@ -11,7 +11,11 @@ export const REDIS = Symbol('REDIS');
       provide: REDIS,
       inject: [ENV],
       useFactory: (env: Env): Redis =>
-        new IORedis(env.REDIS_URL, { maxRetriesPerRequest: null, lazyConnect: true, enableOfflineQueue: true }),
+        new IORedis(env.REDIS_URL, {
+          maxRetriesPerRequest: null,
+          lazyConnect: true,
+          enableOfflineQueue: true,
+        }),
     },
   ],
   exports: [REDIS],

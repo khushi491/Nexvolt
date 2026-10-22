@@ -15,7 +15,12 @@ export interface AuditInput {
   meta?: Partial<RequestMeta>;
 }
 
-const json = (v: unknown) => (v === undefined ? undefined : v === null ? Prisma.JsonNull : (JSON.parse(JSON.stringify(v)) as Prisma.InputJsonValue));
+const json = (v: unknown) =>
+  v === undefined
+    ? undefined
+    : v === null
+      ? Prisma.JsonNull
+      : (JSON.parse(JSON.stringify(v)) as Prisma.InputJsonValue);
 
 /** Append-only audit log (UPDATE/DELETE blocked by a DB trigger). */
 @Injectable()
@@ -27,7 +32,13 @@ export class AuditService {
     await client.auditLog.create({
       data: {
         actorId: input.actor?.id ?? null,
-        actorRole: input.actor ? (input.actor.isAdmin ? 'ADMIN' : input.actor.isStaff ? 'SUPPORT' : input.actor.roles.join(',')) : 'SYSTEM',
+        actorRole: input.actor
+          ? input.actor.isAdmin
+            ? 'ADMIN'
+            : input.actor.isStaff
+              ? 'SUPPORT'
+              : input.actor.roles.join(',')
+          : 'SYSTEM',
         action: input.action,
         resourceType: input.resourceType,
         resourceId: input.resourceId ?? null,

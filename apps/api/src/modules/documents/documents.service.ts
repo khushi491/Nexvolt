@@ -22,7 +22,13 @@ export function toDocumentDto(d: VerificationDocument): DocumentDto {
   };
 }
 
-const CHARGER_DOCS: DocumentType[] = ['PROPERTY_AUTHORIZATION', 'SOCIETY_NOC', 'ELECTRICAL_SAFETY_CERT', 'INSTALLATION_CERT', 'METER_CALIBRATION_CERT'];
+const CHARGER_DOCS: DocumentType[] = [
+  'PROPERTY_AUTHORIZATION',
+  'SOCIETY_NOC',
+  'ELECTRICAL_SAFETY_CERT',
+  'INSTALLATION_CERT',
+  'METER_CALIBRATION_CERT',
+];
 
 @Injectable()
 export class DocumentsService {
@@ -34,14 +40,25 @@ export class DocumentsService {
 
   async createUpload(
     user: AuthUser,
-    input: { docType: DocumentType; chargerId?: string; fileName: string; mimeType: string; sizeBytes: number },
+    input: {
+      docType: DocumentType;
+      chargerId?: string;
+      fileName: string;
+      mimeType: string;
+      sizeBytes: number;
+    },
   ) {
     const host = await this.hosts.requireHost(user);
     if (CHARGER_DOCS.includes(input.docType) && !input.chargerId) {
-      throw AppError.unprocessable('CHARGER_REQUIRED', 'This document type must be attached to a charger');
+      throw AppError.unprocessable(
+        'CHARGER_REQUIRED',
+        'This document type must be attached to a charger',
+      );
     }
     if (input.chargerId) {
-      const c = await this.prisma.charger.findFirst({ where: { id: input.chargerId, hostId: host.id } });
+      const c = await this.prisma.charger.findFirst({
+        where: { id: input.chargerId, hostId: host.id },
+      });
       if (!c) throw AppError.notFound('Charger');
     }
     const key = this.storage.newKey(`documents/${host.id}`, input.mimeType);
@@ -63,7 +80,9 @@ export class DocumentsService {
   }
 
   async completeUpload(user: AuthUser, id: string): Promise<DocumentDto> {
-    const doc = await this.prisma.verificationDocument.findFirst({ where: { id, ownerUserId: user.id } });
+    const doc = await this.prisma.verificationDocument.findFirst({
+      where: { id, ownerUserId: user.id },
+    });
     if (!doc) throw AppError.notFound('Document');
     if (doc.status !== 'PENDING_UPLOAD') return toDocumentDto(doc);
     const check = await this.storage.verifyUpload(doc.storageKey, doc.mimeType, MAX_DOCUMENT_BYTES);
@@ -73,7 +92,8 @@ export class DocumentsService {
         ? { status: 'PENDING_REVIEW', sizeBytes: check.sizeBytes }
         : { status: 'REJECTED', reviewNotes: `Automatic check failed: ${check.reason}` },
     });
-    if (!check.ok) throw AppError.unprocessable('UPLOAD_REJECTED', check.reason ?? 'Upload rejected');
+    if (!check.ok)
+      throw AppError.unprocessable('UPLOAD_REJECTED', check.reason ?? 'Upload rejected');
     return toDocumentDto(updated);
   }
 
@@ -88,14 +108,21 @@ export class DocumentsService {
   async downloadUrl(user: AuthUser, id: string): Promise<{ url: string | null }> {
     const doc = await this.prisma.verificationDocument.findUnique({ where: { id } });
     if (!doc || (doc.ownerUserId !== user.id && !user.isStaff)) throw AppError.notFound('Document');
-    if (doc.status === 'PENDING_UPLOAD' || doc.status === 'REJECTED') throw AppError.unprocessable('NOT_AVAILABLE', 'This document is not available');
+    if (doc.status === 'PENDING_UPLOAD' || doc.status === 'REJECTED')
+      throw AppError.unprocessable('NOT_AVAILABLE', 'This document is not available');
     return { url: await this.storage.presignDownload(doc.storageKey) };
   }
 
   async remove(user: AuthUser, id: string): Promise<void> {
-    const doc = await this.prisma.verificationDocument.findFirst({ where: { id, ownerUserId: user.id } });
+    const doc = await this.prisma.verificationDocument.findFirst({
+      where: { id, ownerUserId: user.id },
+    });
     if (!doc) throw AppError.notFound('Document');
-    if (doc.status === 'ACCEPTED') throw AppError.unprocessable('DOCUMENT_LOCKED', 'Accepted documents cannot be deleted. Contact support.');
+    if (doc.status === 'ACCEPTED')
+      throw AppError.unprocessable(
+        'DOCUMENT_LOCKED',
+        'Accepted documents cannot be deleted. Contact support.',
+      );
     await this.prisma.verificationDocument.delete({ where: { id } });
   }
 }

@@ -6,16 +6,16 @@ Peer-to-peer EV charging marketplace for India: drivers book verified private ch
 
 ## What's in the repo
 
-| Path | What |
-|---|---|
-| `apps/api` | NestJS REST API (`/api/v1`), Prisma + PostgreSQL/PostGIS, Redis/BullMQ jobs, Swagger at `/api/docs` |
-| `apps/web` | Next.js host & admin portal (Tailwind, shadcn-style components) |
-| `apps/mobile` | Expo (SDK 58) React Native driver app + host mode |
-| `packages/shared` | Domain logic shared everywhere: enums, booking state machine, pricing/refunds/commission, availability, metering, zod schemas, DTO types |
-| `packages/api-client` | Typed fetch client used by web and mobile |
-| `packages/ui-tokens` | Design tokens (WCAG-AA-checked colours) + Tailwind preset |
-| `infra/` | Docker Compose for local Postgres/PostGIS, Redis, S3-compatible storage |
-| `docs/` | Architecture, database/ERD, API reference, decisions & limitations, feature inventory, compliance, security, deployment, plan |
+| Path                  | What                                                                                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/api`            | NestJS REST API (`/api/v1`), Prisma + PostgreSQL/PostGIS, Redis/BullMQ jobs, Swagger at `/api/docs`                                      |
+| `apps/web`            | Next.js host & admin portal (Tailwind, shadcn-style components)                                                                          |
+| `apps/mobile`         | Expo (SDK 58) React Native driver app + host mode                                                                                        |
+| `packages/shared`     | Domain logic shared everywhere: enums, booking state machine, pricing/refunds/commission, availability, metering, zod schemas, DTO types |
+| `packages/api-client` | Typed fetch client used by web and mobile                                                                                                |
+| `packages/ui-tokens`  | Design tokens (WCAG-AA-checked colours) + Tailwind preset                                                                                |
+| `infra/`              | Docker Compose for local Postgres/PostGIS, Redis, S3-compatible storage                                                                  |
+| `docs/`               | Architecture, database/ERD, API reference, decisions & limitations, feature inventory, compliance, security, deployment, plan            |
 
 ## Quick start (local)
 
@@ -41,12 +41,12 @@ On a physical phone the app derives the API URL from the Expo dev host (your mac
 
 With `OTP_PROVIDER=emulator` and `OTP_EMULATOR_FIXED_CODE=123456` no SMS is sent; any number accepts `123456`.
 
-| Role | Phone |
-|---|---|
-| Admin | 90000 00001 |
+| Role                                | Phone       |
+| ----------------------------------- | ----------- |
+| Admin                               | 90000 00001 |
 | Admin (used by API-level E2E setup) | 90000 00004 |
-| Host (sample, verified) | 90000 00002 |
-| Driver (sample, Tata Nexon EV) | 90000 00003 |
+| Host (sample, verified)             | 90000 00002 |
+| Driver (sample, Tata Nexon EV)      | 90000 00003 |
 
 All seeded users, chargers and bookings are **fictional** and labelled **SAMPLE**; all local payments are labelled **DEMO PAYMENT**.
 

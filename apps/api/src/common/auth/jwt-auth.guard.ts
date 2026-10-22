@@ -44,7 +44,11 @@ export class JwtAuthGuard implements CanActivate {
       if (payload.typ !== 'access') throw new Error('wrong token type');
     } catch {
       if (isPublic && !optional) return true;
-      throw new AppError('UNAUTHENTICATED', 'Your session has expired. Please sign in again.', HttpStatus.UNAUTHORIZED);
+      throw new AppError(
+        'UNAUTHENTICATED',
+        'Your session has expired. Please sign in again.',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     const user = await this.prisma.user.findUnique({

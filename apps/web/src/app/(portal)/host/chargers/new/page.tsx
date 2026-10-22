@@ -21,8 +21,15 @@ export default function NewChargerPage() {
   });
   return (
     <div className="max-w-4xl">
-      <PageHeader title="Add a charger" description="Saved as a draft. You’ll add availability and documents next, then submit for verification." />
-      <ChargerForm submitLabel="Save draft" busy={create.isPending} onSubmit={(input) => create.mutate(input)} />
+      <PageHeader
+        title="Add a charger"
+        description="Saved as a draft. You’ll add availability and documents next, then submit for verification."
+      />
+      <ChargerForm
+        submitLabel="Save draft"
+        busy={create.isPending}
+        onSubmit={(input) => create.mutate(input)}
+      />
     </div>
   );
 }

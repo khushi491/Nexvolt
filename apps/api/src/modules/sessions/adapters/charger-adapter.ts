@@ -62,6 +62,9 @@ export class OcppAdapterPlaceholder implements ChargerAdapter {
 }
 
 /** Always returns the manual adapter in this release; no integration is enabled. */
-export function adapterFor(_charger: { integrationProvider: string | null; smartCapable: boolean }): ChargerAdapter {
+export function adapterFor(_charger: {
+  integrationProvider: string | null;
+  smartCapable: boolean;
+}): ChargerAdapter {
   return new ManualMeterAdapter();
 }

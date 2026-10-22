@@ -12,6 +12,11 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (status === 'anonymous') router.replace('/login');
   }, [status, router]);
-  if (status !== 'authenticated') return <div className="mx-auto max-w-3xl p-8"><SkeletonRows rows={5} /></div>;
+  if (status !== 'authenticated')
+    return (
+      <div className="mx-auto max-w-3xl p-8">
+        <SkeletonRows rows={5} />
+      </div>
+    );
   return <AppShell>{children}</AppShell>;
 }

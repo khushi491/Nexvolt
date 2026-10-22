@@ -96,7 +96,11 @@ export type PricingUnit = (typeof PricingUnit)[keyof typeof PricingUnit];
 export const ApprovalMode = { AUTOMATIC: 'AUTOMATIC', MANUAL: 'MANUAL' } as const;
 export type ApprovalMode = (typeof ApprovalMode)[keyof typeof ApprovalMode];
 
-export const CancellationPolicy = { FLEXIBLE: 'FLEXIBLE', MODERATE: 'MODERATE', STRICT: 'STRICT' } as const;
+export const CancellationPolicy = {
+  FLEXIBLE: 'FLEXIBLE',
+  MODERATE: 'MODERATE',
+  STRICT: 'STRICT',
+} as const;
 export type CancellationPolicy = (typeof CancellationPolicy)[keyof typeof CancellationPolicy];
 
 export const ParkingType = {
@@ -171,10 +175,18 @@ export const CAPACITY_BLOCKING_STATUSES: BookingStatus[] = [
   'CHARGING',
 ];
 
-export const ActorType = { DRIVER: 'DRIVER', HOST: 'HOST', ADMIN: 'ADMIN', SYSTEM: 'SYSTEM' } as const;
+export const ActorType = {
+  DRIVER: 'DRIVER',
+  HOST: 'HOST',
+  ADMIN: 'ADMIN',
+  SYSTEM: 'SYSTEM',
+} as const;
 export type ActorType = (typeof ActorType)[keyof typeof ActorType];
 
-export const SessionMode = { MANUAL_METER: 'MANUAL_METER', SMART_INTEGRATION: 'SMART_INTEGRATION' } as const;
+export const SessionMode = {
+  MANUAL_METER: 'MANUAL_METER',
+  SMART_INTEGRATION: 'SMART_INTEGRATION',
+} as const;
 export type SessionMode = (typeof SessionMode)[keyof typeof SessionMode];
 
 export const SessionStatus = {
@@ -210,7 +222,11 @@ export const PaymentStatus = {
 } as const;
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
 
-export const RefundStatus = { PENDING: 'PENDING', PROCESSED: 'PROCESSED', FAILED: 'FAILED' } as const;
+export const RefundStatus = {
+  PENDING: 'PENDING',
+  PROCESSED: 'PROCESSED',
+  FAILED: 'FAILED',
+} as const;
 export type RefundStatus = (typeof RefundStatus)[keyof typeof RefundStatus];
 
 export const LedgerEntryType = {
@@ -243,7 +259,10 @@ export const PayoutStatus = {
 } as const;
 export type PayoutStatus = (typeof PayoutStatus)[keyof typeof PayoutStatus];
 
-export const PayoutMethod = { MANUAL_BANK_TRANSFER: 'MANUAL_BANK_TRANSFER', PROVIDER_ROUTE: 'PROVIDER_ROUTE' } as const;
+export const PayoutMethod = {
+  MANUAL_BANK_TRANSFER: 'MANUAL_BANK_TRANSFER',
+  PROVIDER_ROUTE: 'PROVIDER_ROUTE',
+} as const;
 export type PayoutMethod = (typeof PayoutMethod)[keyof typeof PayoutMethod];
 
 export const ReviewStatus = { PUBLISHED: 'PUBLISHED', HIDDEN: 'HIDDEN' } as const;
@@ -269,7 +288,12 @@ export const TicketStatus = {
 } as const;
 export type TicketStatus = (typeof TicketStatus)[keyof typeof TicketStatus];
 
-export const Priority = { LOW: 'LOW', MEDIUM: 'MEDIUM', HIGH: 'HIGH', CRITICAL: 'CRITICAL' } as const;
+export const Priority = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  CRITICAL: 'CRITICAL',
+} as const;
 export type Priority = (typeof Priority)[keyof typeof Priority];
 
 export const IncidentType = {

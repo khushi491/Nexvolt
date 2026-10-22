@@ -42,7 +42,11 @@ export interface MeterAssessment {
   message: string;
 }
 
-export function maxPlausibleEnergyWh(maxPowerKw: number, durationMinutes: number, headroomBps: number): number {
+export function maxPlausibleEnergyWh(
+  maxPowerKw: number,
+  durationMinutes: number,
+  headroomBps: number,
+): number {
   const base = (maxPowerKw * 1000 * Math.max(0, durationMinutes)) / 60;
   return Math.ceil((base * (10_000 + headroomBps)) / 10_000);
 }
@@ -61,17 +65,32 @@ export function assessReadings(args: {
   toleranceBps: number;
   headroomBps: number;
 }): MeterAssessment {
-  const maxPlausibleWh = maxPlausibleEnergyWh(args.maxPowerKw, args.durationMinutes, args.headroomBps);
-  const delta = (p: PartyReadings) => (p.startWh != null && p.endWh != null ? p.endWh - p.startWh : undefined);
+  const maxPlausibleWh = maxPlausibleEnergyWh(
+    args.maxPowerKw,
+    args.durationMinutes,
+    args.headroomBps,
+  );
+  const delta = (p: PartyReadings) =>
+    p.startWh != null && p.endWh != null ? p.endWh - p.startWh : undefined;
   const hostEnergyWh = delta(args.host);
   const driverEnergyWh = delta(args.driver);
 
   if (hostEnergyWh === undefined && driverEnergyWh === undefined) {
-    return { status: 'AWAITING_READINGS', maxPlausibleWh, message: 'Start and end meter readings are required.' };
+    return {
+      status: 'AWAITING_READINGS',
+      maxPlausibleWh,
+      message: 'Start and end meter readings are required.',
+    };
   }
   for (const e of [hostEnergyWh, driverEnergyWh]) {
     if (e !== undefined && e < 0) {
-      return { status: 'INVALID', hostEnergyWh, driverEnergyWh, maxPlausibleWh, message: 'End reading is lower than start reading.' };
+      return {
+        status: 'INVALID',
+        hostEnergyWh,
+        driverEnergyWh,
+        maxPlausibleWh,
+        message: 'End reading is lower than start reading.',
+      };
     }
   }
   if (hostEnergyWh === undefined || driverEnergyWh === undefined) {
@@ -94,7 +113,8 @@ export function assessReadings(args: {
       differenceWh,
       toleranceWh,
       maxPlausibleWh,
-      message: 'Host and driver readings differ beyond tolerance. A dispute has been opened for review.',
+      message:
+        'Host and driver readings differ beyond tolerance. A dispute has been opened for review.',
     };
   }
   const billableEnergyWh = Math.min(hostEnergyWh, driverEnergyWh);

@@ -163,20 +163,20 @@ Supporting tables not shown above: `otp_challenges`, `idempotency_records`, `pla
 
 ## Integrity rules enforced by the database
 
-| Rule | Mechanism |
-|---|---|
+| Rule                                                                                                 | Mechanism                                                                                                                                                                                    |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | No overlapping capacity on a charger (holds and confirmed bookings alike, including the host buffer) | `EXCLUDE USING gist ("chargerId" WITH =, tstzrange("startAt","blockedUntil",'[)') WITH &&) WHERE status IN (AWAITING_HOST_APPROVAL, HELD, PENDING_PAYMENT, CONFIRMED, CHECKED_IN, CHARGING)` |
-| Contending inserts don't deadlock | per-charger `pg_advisory_xact_lock` in the booking transaction |
-| At most one live payment per booking | partial unique index on `payments("bookingId") WHERE status IN (AUTHORIZED, CAPTURED, PARTIALLY_REFUNDED)` |
-| Totals add up; no negative money | CHECK `totalMinor = chargingFee + serviceFee + serviceFeeTax`, amounts ≥ 0, refunded ≤ amount |
-| A payout can't be PAID without a bank/provider reference | CHECK on `payouts` |
-| A charger can't be VERIFIED without an approval timestamp, or published unless VERIFIED | CHECKs on `chargers` |
-| A host can't be identity-VERIFIED without a timestamp | CHECK on `host_profiles` |
-| One open dispute per booking | partial unique index |
-| Audit log is append-only | `BEFORE UPDATE OR DELETE` trigger raising an error |
-| Webhook events processed once | unique `payment_events.dedupeKey` |
-| Ledger postings idempotent | unique `host_ledger_entries.idempotencyKey` |
-| Booking creation idempotent per driver | unique `(driverId, idempotencyKey)` |
+| Contending inserts don't deadlock                                                                    | per-charger `pg_advisory_xact_lock` in the booking transaction                                                                                                                               |
+| At most one live payment per booking                                                                 | partial unique index on `payments("bookingId") WHERE status IN (AUTHORIZED, CAPTURED, PARTIALLY_REFUNDED)`                                                                                   |
+| Totals add up; no negative money                                                                     | CHECK `totalMinor = chargingFee + serviceFee + serviceFeeTax`, amounts ≥ 0, refunded ≤ amount                                                                                                |
+| A payout can't be PAID without a bank/provider reference                                             | CHECK on `payouts`                                                                                                                                                                           |
+| A charger can't be VERIFIED without an approval timestamp, or published unless VERIFIED              | CHECKs on `chargers`                                                                                                                                                                         |
+| A host can't be identity-VERIFIED without a timestamp                                                | CHECK on `host_profiles`                                                                                                                                                                     |
+| One open dispute per booking                                                                         | partial unique index                                                                                                                                                                         |
+| Audit log is append-only                                                                             | `BEFORE UPDATE OR DELETE` trigger raising an error                                                                                                                                           |
+| Webhook events processed once                                                                        | unique `payment_events.dedupeKey`                                                                                                                                                            |
+| Ledger postings idempotent                                                                           | unique `host_ledger_entries.idempotencyKey`                                                                                                                                                  |
+| Booking creation idempotent per driver                                                               | unique `(driverId, idempotencyKey)`                                                                                                                                                          |
 
 ## Spatial
 

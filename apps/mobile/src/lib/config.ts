@@ -10,7 +10,8 @@ function devHost(): string | null {
   return host ? `http://${host}:4000` : null;
 }
 
-export const API_URL: string = process.env.EXPO_PUBLIC_API_URL ?? devHost() ?? 'http://localhost:4000';
+export const API_URL: string =
+  process.env.EXPO_PUBLIC_API_URL ?? devHost() ?? 'http://localhost:4000';
 
 /**
  * Rewrite an absolute API URL (e.g. the hosted checkout page) to the origin this device can reach.

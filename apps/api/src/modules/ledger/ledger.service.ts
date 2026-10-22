@@ -25,7 +25,9 @@ const LABELS: Record<string, string> = {
   PAYOUT: 'Payout',
 };
 
-export function toLedgerDto(e: HostLedgerEntry & { booking?: { code: string } | null }): LedgerEntryDto {
+export function toLedgerDto(
+  e: HostLedgerEntry & { booking?: { code: string } | null },
+): LedgerEntryDto {
   return {
     id: e.id,
     type: e.type,
@@ -56,7 +58,9 @@ export class LedgerService {
 
   private async post(tx: Tx, entry: Prisma.HostLedgerEntryUncheckedCreateInput): Promise<void> {
     if (entry.amountMinor === 0) return;
-    const exists = await tx.hostLedgerEntry.findUnique({ where: { idempotencyKey: entry.idempotencyKey } });
+    const exists = await tx.hostLedgerEntry.findUnique({
+      where: { idempotencyKey: entry.idempotencyKey },
+    });
     if (exists) return;
     try {
       await tx.hostLedgerEntry.create({ data: entry });
@@ -65,7 +69,11 @@ export class LedgerService {
     }
   }
 
-  async postCapture(tx: Tx, booking: Booking & { charger: { hostId: string } }, payment: Payment): Promise<void> {
+  async postCapture(
+    tx: Tx,
+    booking: Booking & { charger: { hostId: string } },
+    payment: Payment,
+  ): Promise<void> {
     const s = await this.settings.get();
     const lines = hostLedgerForCapture({
       chargingFeeMinor: booking.chargingFeeMinor,
@@ -86,8 +94,17 @@ export class LedgerService {
     }
   }
 
-  async postRefund(tx: Tx, booking: Booking & { charger: { hostId: string } }, refundId: string, chargingFeeRefundMinor: number): Promise<void> {
-    const lines = hostLedgerForRefund({ chargingFeeMinor: booking.chargingFeeMinor, chargingFeeRefundMinor, commissionBps: booking.commissionBps });
+  async postRefund(
+    tx: Tx,
+    booking: Booking & { charger: { hostId: string } },
+    refundId: string,
+    chargingFeeRefundMinor: number,
+  ): Promise<void> {
+    const lines = hostLedgerForRefund({
+      chargingFeeMinor: booking.chargingFeeMinor,
+      chargingFeeRefundMinor,
+      commissionBps: booking.commissionBps,
+    });
     const settled = ['SETTLED', 'CANCELLED'].includes(booking.status);
     for (const l of lines) {
       await this.post(tx, {
@@ -106,18 +123,40 @@ export class LedgerService {
   /** Void reversals for a refund that the provider reported as failed. */
   async voidRefund(tx: Tx, refundId: string): Promise<void> {
     await tx.hostLedgerEntry.updateMany({
-      where: { idempotencyKey: { startsWith: `refund:${refundId}:` }, status: { in: ['PENDING', 'ELIGIBLE'] } },
+      where: {
+        idempotencyKey: { startsWith: `refund:${refundId}:` },
+        status: { in: ['PENDING', 'ELIGIBLE'] },
+      },
       data: { status: 'VOID' },
     });
   }
 
   async markBookingEligible(tx: Tx, bookingId: string): Promise<number> {
-    const r = await tx.hostLedgerEntry.updateMany({ where: { bookingId, status: 'PENDING' }, data: { status: 'ELIGIBLE', eligibleAt: new Date() } });
+    const r = await tx.hostLedgerEntry.updateMany({
+      where: { bookingId, status: 'PENDING' },
+      data: { status: 'ELIGIBLE', eligibleAt: new Date() },
+    });
     return r.count;
   }
 
-  async adjustment(tx: Tx, hostId: string, bookingId: string | null, amountMinor: number, description: string, key: string): Promise<void> {
-    await this.post(tx, { hostId, bookingId, type: 'ADJUSTMENT', amountMinor, description, idempotencyKey: key, status: 'ELIGIBLE', eligibleAt: new Date() });
+  async adjustment(
+    tx: Tx,
+    hostId: string,
+    bookingId: string | null,
+    amountMinor: number,
+    description: string,
+    key: string,
+  ): Promise<void> {
+    await this.post(tx, {
+      hostId,
+      bookingId,
+      type: 'ADJUSTMENT',
+      amountMinor,
+      description,
+      idempotencyKey: key,
+      status: 'ELIGIBLE',
+      eligibleAt: new Date(),
+    });
   }
 
   async summary(hostId: string): Promise<EarningsSummaryDto> {
@@ -127,10 +166,13 @@ export class LedgerService {
       where: { hostId, status: { not: 'VOID' } },
       _sum: { amountMinor: true },
     });
-    const sum = (pred: (g: (typeof groups)[number]) => boolean) => groups.filter(pred).reduce((a, g) => a + (g._sum.amountMinor ?? 0), 0);
+    const sum = (pred: (g: (typeof groups)[number]) => boolean) =>
+      groups.filter(pred).reduce((a, g) => a + (g._sum.amountMinor ?? 0), 0);
     return {
       grossMinor: sum((g) => g.type === 'BOOKING_GROSS'),
-      commissionMinor: sum((g) => g.type === 'PLATFORM_COMMISSION' || g.type === 'COMMISSION_REVERSAL'),
+      commissionMinor: sum(
+        (g) => g.type === 'PLATFORM_COMMISSION' || g.type === 'COMMISSION_REVERSAL',
+      ),
       paymentFeesMinor: sum((g) => g.type === 'PAYMENT_FEE'),
       refundsMinor: sum((g) => g.type === 'REFUND_REVERSAL'),
       adjustmentsMinor: sum((g) => g.type === 'ADJUSTMENT'),
@@ -152,7 +194,9 @@ export class LedgerService {
     return rows.map(toLedgerDto);
   }
 
-  toPayoutDto(p: Payout & { host: { displayName: string }; _count?: { entries: number } }): PayoutDto {
+  toPayoutDto(
+    p: Payout & { host: { displayName: string }; _count?: { entries: number } },
+  ): PayoutDto {
     return {
       id: p.id,
       hostId: p.hostId,
@@ -186,7 +230,9 @@ export class LedgerService {
       _sum: { amountMinor: true },
       _count: true,
     });
-    const hosts = await this.prisma.hostProfile.findMany({ where: { id: { in: rows.map((r) => r.hostId) } } });
+    const hosts = await this.prisma.hostProfile.findMany({
+      where: { id: { in: rows.map((r) => r.hostId) } },
+    });
     return rows
       .map((r) => {
         const h = hosts.find((x) => x.id === r.hostId)!;
@@ -205,42 +251,98 @@ export class LedgerService {
    * Batch a host's eligible entries into a payout awaiting transfer. This does NOT move
    * money: an admin performs the transfer via a supported channel and records its reference.
    */
-  async createPayout(hostId: string, reason: string, actor: AuthUser, meta: RequestMeta): Promise<PayoutDto> {
+  async createPayout(
+    hostId: string,
+    reason: string,
+    actor: AuthUser,
+    meta: RequestMeta,
+  ): Promise<PayoutDto> {
     const host = await this.prisma.hostProfile.findUnique({ where: { id: hostId } });
     if (!host) throw AppError.notFound('Host');
     if (host.payoutAccountStatus !== 'ACTIVE') {
-      throw AppError.unprocessable('PAYOUT_ACCOUNT_NOT_ACTIVE', 'Host payout account is not verified');
+      throw AppError.unprocessable(
+        'PAYOUT_ACCOUNT_NOT_ACTIVE',
+        'Host payout account is not verified',
+      );
     }
-    if (host.suspendedAt) throw AppError.unprocessable('HOST_SUSPENDED', 'Payouts are on hold for suspended hosts');
+    if (host.suspendedAt)
+      throw AppError.unprocessable('HOST_SUSPENDED', 'Payouts are on hold for suspended hosts');
     const payout = await this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM host_profiles WHERE id = ${hostId}::uuid FOR UPDATE`;
-      const entries = await tx.hostLedgerEntry.findMany({ where: { hostId, status: 'ELIGIBLE', payoutId: null } });
+      const entries = await tx.hostLedgerEntry.findMany({
+        where: { hostId, status: 'ELIGIBLE', payoutId: null },
+      });
       const amount = entries.reduce((a, e) => a + e.amountMinor, 0);
-      if (amount <= 0) throw AppError.unprocessable('NOTHING_TO_PAY', 'No positive eligible balance for this host');
-      const p = await tx.payout.create({ data: { hostId, amountMinor: amount, createdById: actor.id } });
+      if (amount <= 0)
+        throw AppError.unprocessable(
+          'NOTHING_TO_PAY',
+          'No positive eligible balance for this host',
+        );
+      const p = await tx.payout.create({
+        data: { hostId, amountMinor: amount, createdById: actor.id },
+      });
       const upd = await tx.hostLedgerEntry.updateMany({
         where: { id: { in: entries.map((e) => e.id) }, status: 'ELIGIBLE', payoutId: null },
         data: { status: 'IN_PAYOUT', payoutId: p.id },
       });
-      if (upd.count !== entries.length) throw AppError.conflict('LEDGER_CHANGED', 'Ledger changed during payout creation; retry');
-      await this.audit.log({ actor, action: 'payout.create', resourceType: 'Payout', resourceId: p.id, reason, newValue: { hostId, amountMinor: amount, entries: entries.length }, meta }, tx);
+      if (upd.count !== entries.length)
+        throw AppError.conflict('LEDGER_CHANGED', 'Ledger changed during payout creation; retry');
+      await this.audit.log(
+        {
+          actor,
+          action: 'payout.create',
+          resourceType: 'Payout',
+          resourceId: p.id,
+          reason,
+          newValue: { hostId, amountMinor: amount, entries: entries.length },
+          meta,
+        },
+        tx,
+      );
       return p;
     });
     return (await this.payouts({ id: payout.id }))[0]!;
   }
 
-  async markPayoutPaid(id: string, externalReference: string, reason: string, actor: AuthUser, meta: RequestMeta): Promise<PayoutDto> {
+  async markPayoutPaid(
+    id: string,
+    externalReference: string,
+    reason: string,
+    actor: AuthUser,
+    meta: RequestMeta,
+  ): Promise<PayoutDto> {
     const p = await this.prisma.payout.findUnique({ where: { id }, include: { host: true } });
     if (!p) throw AppError.notFound('Payout');
-    if (p.status !== 'READY_FOR_PAYOUT' && p.status !== 'PROCESSING') throw AppError.conflict('INVALID_STATE', `Payout is ${p.status}`);
+    if (p.status !== 'READY_FOR_PAYOUT' && p.status !== 'PROCESSING')
+      throw AppError.conflict('INVALID_STATE', `Payout is ${p.status}`);
     await this.prisma.$transaction(async (tx) => {
       const r = await tx.payout.updateMany({
         where: { id, status: p.status },
-        data: { status: 'PAID', externalReference, confirmedById: actor.id, confirmedAt: new Date() },
+        data: {
+          status: 'PAID',
+          externalReference,
+          confirmedById: actor.id,
+          confirmedAt: new Date(),
+        },
       });
       if (r.count === 0) throw AppError.conflict('PAYOUT_CHANGED', 'Payout changed; refresh');
-      await tx.hostLedgerEntry.updateMany({ where: { payoutId: id }, data: { status: 'PAID_OUT' } });
-      await this.audit.log({ actor, action: 'payout.mark_paid', resourceType: 'Payout', resourceId: id, reason, oldValue: { status: p.status }, newValue: { status: 'PAID', externalReference }, meta }, tx);
+      await tx.hostLedgerEntry.updateMany({
+        where: { payoutId: id },
+        data: { status: 'PAID_OUT' },
+      });
+      await this.audit.log(
+        {
+          actor,
+          action: 'payout.mark_paid',
+          resourceType: 'Payout',
+          resourceId: id,
+          reason,
+          oldValue: { status: p.status },
+          newValue: { status: 'PAID', externalReference },
+          meta,
+        },
+        tx,
+      );
     });
     await this.notifications.notify({
       userId: p.host.userId,
@@ -252,15 +354,39 @@ export class LedgerService {
     return (await this.payouts({ id }))[0]!;
   }
 
-  async markPayoutFailed(id: string, reason: string, actor: AuthUser, meta: RequestMeta): Promise<PayoutDto> {
+  async markPayoutFailed(
+    id: string,
+    reason: string,
+    actor: AuthUser,
+    meta: RequestMeta,
+  ): Promise<PayoutDto> {
     const p = await this.prisma.payout.findUnique({ where: { id } });
     if (!p) throw AppError.notFound('Payout');
-    if (p.status === 'PAID') throw AppError.conflict('INVALID_STATE', 'Paid payouts cannot be failed; post an adjustment instead');
+    if (p.status === 'PAID')
+      throw AppError.conflict(
+        'INVALID_STATE',
+        'Paid payouts cannot be failed; post an adjustment instead',
+      );
     await this.prisma.$transaction(async (tx) => {
       await tx.payout.update({ where: { id }, data: { status: 'FAILED', failureReason: reason } });
       // Return entries to the eligible pool.
-      await tx.hostLedgerEntry.updateMany({ where: { payoutId: id }, data: { status: 'ELIGIBLE', payoutId: null } });
-      await this.audit.log({ actor, action: 'payout.mark_failed', resourceType: 'Payout', resourceId: id, reason, oldValue: { status: p.status }, newValue: { status: 'FAILED' }, meta }, tx);
+      await tx.hostLedgerEntry.updateMany({
+        where: { payoutId: id },
+        data: { status: 'ELIGIBLE', payoutId: null },
+      });
+      await this.audit.log(
+        {
+          actor,
+          action: 'payout.mark_failed',
+          resourceType: 'Payout',
+          resourceId: id,
+          reason,
+          oldValue: { status: p.status },
+          newValue: { status: 'FAILED' },
+          meta,
+        },
+        tx,
+      );
     });
     return (await this.payouts({ id }))[0]!;
   }

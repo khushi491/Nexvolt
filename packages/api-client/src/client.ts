@@ -102,7 +102,8 @@ export class HttpClient {
       });
     };
     let res = await send();
-    if (res.status === 401 && o.auth !== false && this.opts.tokens && (await this.refresh())) res = await send();
+    if (res.status === 401 && o.auth !== false && this.opts.tokens && (await this.refresh()))
+      res = await send();
     if (res.status === 204) return undefined as T;
     const text = await res.text();
     const json = text ? (JSON.parse(text) as unknown) : undefined;
@@ -119,7 +120,8 @@ export class HttpClient {
     const t = await this.opts.tokens?.getAccessToken();
     if (t) headers.Authorization = `Bearer ${t}`;
     const res = await this.fetchImpl(this.url(path, query), { headers });
-    if (!res.ok) throw new ApiError(res.status, (await res.json().catch(() => ({}))) as Partial<ApiErrorBody>);
+    if (!res.ok)
+      throw new ApiError(res.status, (await res.json().catch(() => ({}))) as Partial<ApiErrorBody>);
     return res.text();
   }
 
@@ -162,6 +164,14 @@ export async function uploadToPresignedUrl(
   body: Blob | ArrayBuffer | Uint8Array,
   fetchImpl: typeof fetch = fetch,
 ): Promise<void> {
-  const res = await fetchImpl(upload.uploadUrl, { method: 'PUT', headers: upload.headers, body: body as BodyInit });
-  if (!res.ok) throw new ApiError(res.status, { code: 'UPLOAD_FAILED', message: 'File upload failed. Please try again.' });
+  const res = await fetchImpl(upload.uploadUrl, {
+    method: 'PUT',
+    headers: upload.headers,
+    body: body as BodyInit,
+  });
+  if (!res.ok)
+    throw new ApiError(res.status, {
+      code: 'UPLOAD_FAILED',
+      message: 'File upload failed. Please try again.',
+    });
 }

@@ -24,20 +24,34 @@ describe('Button', () => {
     await user.press(screen.getByRole('button', { name: 'Busy' }));
     expect(onPress).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Disabled' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Busy' }).props.accessibilityState).toMatchObject({ busy: true, disabled: true });
+    expect(screen.getByRole('button', { name: 'Busy' }).props.accessibilityState).toMatchObject({
+      busy: true,
+      disabled: true,
+    });
   });
 });
 
 describe('PriceBreakdown', () => {
   it('itemises in INR and labels per-kWh totals as estimates', async () => {
-    await render(<PriceBreakdown items={[{ code: 'CHARGING_FEE', label: 'Charging energy (estimate)', amountMinor: 11664 }]} total={11664} isEstimate />);
+    await render(
+      <PriceBreakdown
+        items={[{ code: 'CHARGING_FEE', label: 'Charging energy (estimate)', amountMinor: 11664 }]}
+        total={11664}
+        isEstimate
+      />,
+    );
     expect(screen.getAllByText('₹116.64')).toHaveLength(2);
     expect(screen.getByText('Total (prepaid estimate)')).toBeTruthy();
     expect(screen.getByText(/Unused prepayment is refunded/)).toBeTruthy();
   });
 
   it('does not show estimate wording for hourly totals', async () => {
-    await render(<PriceBreakdown items={[{ code: 'CHARGING_FEE', label: 'Charging slot fee', amountMinor: 12000 }]} total={12000} />);
+    await render(
+      <PriceBreakdown
+        items={[{ code: 'CHARGING_FEE', label: 'Charging slot fee', amountMinor: 12000 }]}
+        total={12000}
+      />,
+    );
     expect(screen.getByText('Total')).toBeTruthy();
     expect(screen.queryByText(/estimate/i)).toBeNull();
   });
@@ -52,16 +66,36 @@ describe('BookingStatusBadge', () => {
 
 describe('ChargerCard', () => {
   const base: ChargerSearchResultDto = {
-    id: 'c1', title: 'Covered 7 kW charger', currentType: 'AC', maxPowerKw: 7.2, connectors: [{ connectorType: 'TYPE_2', powerKw: 7.2 }],
-    pricingUnit: 'PER_HOUR', unitPriceMinor: 12000, approxLocation: { lat: 12.97, lng: 77.64 }, approxDistanceKm: 1.4, locality: 'Indiranagar', city: 'Bengaluru',
-    parkingType: 'PRIVATE_DRIVEWAY', wheelchairAccessible: false, verifiedMeter: false, approvalMode: 'MANUAL', ratingAvg: 4.5, ratingCount: 2, photoUrl: null,
-    hostIdentityVerified: true, isSample: true, availableForRequestedSlot: null, compatibility: { vehicleId: 'v', compatible: true, effectiveKw: 7.2, bestConnector: 'TYPE_2' },
+    id: 'c1',
+    title: 'Covered 7 kW charger',
+    currentType: 'AC',
+    maxPowerKw: 7.2,
+    connectors: [{ connectorType: 'TYPE_2', powerKw: 7.2 }],
+    pricingUnit: 'PER_HOUR',
+    unitPriceMinor: 12000,
+    approxLocation: { lat: 12.97, lng: 77.64 },
+    approxDistanceKm: 1.4,
+    locality: 'Indiranagar',
+    city: 'Bengaluru',
+    parkingType: 'PRIVATE_DRIVEWAY',
+    wheelchairAccessible: false,
+    verifiedMeter: false,
+    approvalMode: 'MANUAL',
+    ratingAvg: 4.5,
+    ratingCount: 2,
+    photoUrl: null,
+    hostIdentityVerified: true,
+    isSample: true,
+    availableForRequestedSlot: null,
+    compatibility: { vehicleId: 'v', compatible: true, effectiveKw: 7.2, bestConnector: 'TYPE_2' },
   };
 
   it('summarises the listing accessibly with approximate distance and price', async () => {
     const onPress = jest.fn();
     await render(<ChargerCard c={base} onPress={onPress} />);
-    const card = screen.getByRole('button', { name: /Covered 7 kW charger, 1.4 kilometres away, ₹120/ });
+    const card = screen.getByRole('button', {
+      name: /Covered 7 kW charger, 1.4 kilometres away, ₹120/,
+    });
     await fireEvent.press(card);
     expect(onPress).toHaveBeenCalled();
     expect(screen.getByText('~1.4 km · Indiranagar, Bengaluru')).toBeTruthy();
@@ -75,7 +109,12 @@ describe('ChargerCard', () => {
   });
 
   it('omits the sample badge for real listings', async () => {
-    await render(<ChargerCard c={{ ...base, isSample: false, compatibility: undefined }} onPress={() => undefined} />);
+    await render(
+      <ChargerCard
+        c={{ ...base, isSample: false, compatibility: undefined }}
+        onPress={() => undefined}
+      />,
+    );
     expect(screen.queryByText('SAMPLE')).toBeNull();
     expect(screen.queryByText(/Fits your EV/)).toBeNull();
   });

@@ -1,6 +1,10 @@
 import { formatINR } from '@nexvolt/shared';
 
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+const esc = (s: string) =>
+  s.replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
+  );
 
 export interface CheckoutPageInput {
   nonce: string;
@@ -22,8 +26,15 @@ export interface CheckoutPageInput {
  * server re-verifies everything — the page itself is never trusted.
  */
 export function renderCheckoutPage(i: CheckoutPageInput): string {
-  const data = JSON.stringify({ token: i.token, paymentId: i.paymentId, provider: i.provider, keyId: i.keyId, orderId: i.orderId, amount: i.amountMinor, bookingCode: i.bookingCode })
-    .replace(/</g, '\\u003c');
+  const data = JSON.stringify({
+    token: i.token,
+    paymentId: i.paymentId,
+    provider: i.provider,
+    keyId: i.keyId,
+    orderId: i.orderId,
+    amount: i.amountMinor,
+    bookingCode: i.bookingCode,
+  }).replace(/</g, '\\u003c');
   const isDemo = i.provider === 'DEMO';
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Nexvolt checkout</title>

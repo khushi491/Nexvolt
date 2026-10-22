@@ -12,7 +12,11 @@ import { RefundsService } from './refunds.service';
   providers: [
     PaymentsService,
     RefundsService,
-    { provide: PROVIDER_REGISTRY, inject: [ENV], useFactory: (env: Env) => new PaymentProviderRegistry(env) },
+    {
+      provide: PROVIDER_REGISTRY,
+      inject: [ENV],
+      useFactory: (env: Env) => new PaymentProviderRegistry(env),
+    },
     { provide: REFUND_PORT, useExisting: RefundsService },
   ],
   exports: [PaymentsService, RefundsService, REFUND_PORT, PROVIDER_REGISTRY],

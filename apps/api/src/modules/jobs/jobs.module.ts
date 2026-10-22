@@ -1,9 +1,22 @@
-import { Global, Inject, Injectable, Logger, Module, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
+import {
+  Global,
+  Inject,
+  Injectable,
+  Logger,
+  Module,
+  OnApplicationBootstrap,
+  OnApplicationShutdown,
+} from '@nestjs/common';
 import { Queue, Worker } from 'bullmq';
 import IORedis from 'ioredis';
 import { ENV, type Env } from '../../config/env';
 import { NotificationsService, PUSH_QUEUE } from '../notifications/notifications.service';
-import { MAINTENANCE_TASKS, MaintenanceService, SCHEDULE_MS, type MaintenanceTask } from './maintenance.service';
+import {
+  MAINTENANCE_TASKS,
+  MaintenanceService,
+  SCHEDULE_MS,
+  type MaintenanceTask,
+} from './maintenance.service';
 
 const MAINTENANCE_QUEUE = 'nexvolt-maintenance';
 const PUSH_QUEUE_NAME = 'nexvolt-push';
@@ -36,13 +49,25 @@ export class JobsRunner implements OnApplicationBootstrap, OnApplicationShutdown
     const maintenanceQueue = new Queue(MAINTENANCE_QUEUE, { connection: connection(this.env) });
     this.queues.push(maintenanceQueue);
     for (const task of MAINTENANCE_TASKS) {
-      await maintenanceQueue.upsertJobScheduler(task, { every: SCHEDULE_MS[task] }, { name: task, opts: { removeOnComplete: 100, removeOnFail: 500 } });
+      await maintenanceQueue.upsertJobScheduler(
+        task,
+        { every: SCHEDULE_MS[task] },
+        { name: task, opts: { removeOnComplete: 100, removeOnFail: 500 } },
+      );
     }
     this.workers.push(
-      new Worker(MAINTENANCE_QUEUE, (job) => this.maintenance.run(job.name as MaintenanceTask), { connection: connection(this.env), concurrency: 1 }),
-      new Worker(PUSH_QUEUE_NAME, (job) => this.notifications.deliver(job.data.notificationId as string), { connection: connection(this.env), concurrency: 5 }),
+      new Worker(MAINTENANCE_QUEUE, (job) => this.maintenance.run(job.name as MaintenanceTask), {
+        connection: connection(this.env),
+        concurrency: 1,
+      }),
+      new Worker(
+        PUSH_QUEUE_NAME,
+        (job) => this.notifications.deliver(job.data.notificationId as string),
+        { connection: connection(this.env), concurrency: 5 },
+      ),
     );
-    for (const w of this.workers) w.on('failed', (job, err) => this.logger.warn(`Job ${job?.name} failed: ${err.message}`));
+    for (const w of this.workers)
+      w.on('failed', (job, err) => this.logger.warn(`Job ${job?.name} failed: ${err.message}`));
     this.logger.log(`Scheduled ${MAINTENANCE_TASKS.length} maintenance tasks`);
   }
 
@@ -61,7 +86,8 @@ export class JobsRunner implements OnApplicationBootstrap, OnApplicationShutdown
     {
       provide: PUSH_QUEUE,
       inject: [ENV],
-      useFactory: (env: Env) => (env.JOBS_ENABLED ? new Queue(PUSH_QUEUE_NAME, { connection: connection(env) }) : null),
+      useFactory: (env: Env) =>
+        env.JOBS_ENABLED ? new Queue(PUSH_QUEUE_NAME, { connection: connection(env) }) : null,
     },
   ],
   exports: [MaintenanceService, PUSH_QUEUE],

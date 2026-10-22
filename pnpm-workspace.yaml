@@ -1,10 +1,13 @@
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'packages/*'
+overrides:
+  'next>postcss': '8.5.31'
+  '@nestjs/swagger>js-yaml': '5.5.0'
 onlyBuiltDependencies:
-  - "@prisma/client"
-  - "@prisma/engines"
+  - '@prisma/client'
+  - '@prisma/engines'
   - prisma
   - esbuild
-  - "@nestjs/core"
+  - '@nestjs/core'
   - bcrypt

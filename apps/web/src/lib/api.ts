@@ -46,8 +46,18 @@ export const api = new NexvoltApi({
   onSessionExpired: () => emit(null),
 });
 
-export async function login(input: { phone: string; code: string; acceptTerms?: boolean; termsVersion?: string }): Promise<UserDto> {
-  const res = await fetch('/api/session/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input), credentials: 'same-origin' });
+export async function login(input: {
+  phone: string;
+  code: string;
+  acceptTerms?: boolean;
+  termsVersion?: string;
+}): Promise<UserDto> {
+  const res = await fetch('/api/session/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+    credentials: 'same-origin',
+  });
   const body = await res.json();
   if (!res.ok) throw new ApiError(res.status, body);
   accessToken = body.accessToken;
@@ -56,7 +66,9 @@ export async function login(input: { phone: string; code: string; acceptTerms?: 
 }
 
 export async function logout(): Promise<void> {
-  await fetch('/api/session/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => undefined);
+  await fetch('/api/session/logout', { method: 'POST', credentials: 'same-origin' }).catch(
+    () => undefined,
+  );
   accessToken = null;
   emit(null);
 }

@@ -15,7 +15,9 @@ export class HostsService {
 
   async requireHost(user: AuthUser) {
     if (!user.hostProfileId) throw AppError.forbidden('Complete host onboarding first');
-    const h = await this.prisma.hostProfile.findUniqueOrThrow({ where: { id: user.hostProfileId } });
+    const h = await this.prisma.hostProfile.findUniqueOrThrow({
+      where: { id: user.hostProfileId },
+    });
     return h;
   }
 
@@ -29,7 +31,8 @@ export class HostsService {
     user: AuthUser,
     input: { displayName: string; hostType: HostType; attestationVersion: string },
   ): Promise<HostProfileDto> {
-    if (user.hostProfileId) throw AppError.conflict('ALREADY_HOST', 'You are already registered as a host');
+    if (user.hostProfileId)
+      throw AppError.conflict('ALREADY_HOST', 'You are already registered as a host');
     const profile = await this.prisma.$transaction(async (tx) => {
       const u = await tx.user.findUniqueOrThrow({ where: { id: user.id } });
       const roles = Array.from(new Set([...u.roles, 'HOST' as const]));
@@ -43,7 +46,16 @@ export class HostsService {
           attestationVersion: input.attestationVersion,
         },
       });
-      await this.audit.log({ actor: user, action: 'host.onboard', resourceType: 'HostProfile', resourceId: p.id, newValue: { hostType: p.hostType, attestationVersion: p.attestationVersion } }, tx);
+      await this.audit.log(
+        {
+          actor: user,
+          action: 'host.onboard',
+          resourceType: 'HostProfile',
+          resourceId: p.id,
+          newValue: { hostType: p.hostType, attestationVersion: p.attestationVersion },
+        },
+        tx,
+      );
       return p;
     });
     return toHostProfileDto(profile);
@@ -53,9 +65,14 @@ export class HostsService {
     return toHostProfileDto(await this.requireHost(user));
   }
 
-  async update(user: AuthUser, input: { displayName?: string; hostType?: HostType; bio?: string | null }): Promise<HostProfileDto> {
+  async update(
+    user: AuthUser,
+    input: { displayName?: string; hostType?: HostType; bio?: string | null },
+  ): Promise<HostProfileDto> {
     const h = await this.requireHost(user);
-    return toHostProfileDto(await this.prisma.hostProfile.update({ where: { id: h.id }, data: input }));
+    return toHostProfileDto(
+      await this.prisma.hostProfile.update({ where: { id: h.id }, data: input }),
+    );
   }
 
   /**
@@ -64,13 +81,29 @@ export class HostsService {
    */
   async submitKyc(user: AuthUser): Promise<HostProfileDto> {
     const h = await this.requireHost(user);
-    if (h.kycStatus === 'VERIFIED') throw AppError.conflict('ALREADY_VERIFIED', 'Identity already verified');
+    if (h.kycStatus === 'VERIFIED')
+      throw AppError.conflict('ALREADY_VERIFIED', 'Identity already verified');
     const doc = await this.prisma.verificationDocument.findFirst({
-      where: { hostId: h.id, docType: 'IDENTITY_PROOF', status: { in: ['PENDING_REVIEW', 'ACCEPTED'] } },
+      where: {
+        hostId: h.id,
+        docType: 'IDENTITY_PROOF',
+        status: { in: ['PENDING_REVIEW', 'ACCEPTED'] },
+      },
     });
-    if (!doc) throw AppError.unprocessable('DOCUMENT_REQUIRED', 'Upload an identity document first');
-    const updated = await this.prisma.hostProfile.update({ where: { id: h.id }, data: { kycStatus: 'PENDING_REVIEW' } });
-    await this.audit.log({ actor: user, action: 'host.kyc.submit', resourceType: 'HostProfile', resourceId: h.id, oldValue: { kycStatus: h.kycStatus }, newValue: { kycStatus: 'PENDING_REVIEW' } });
+    if (!doc)
+      throw AppError.unprocessable('DOCUMENT_REQUIRED', 'Upload an identity document first');
+    const updated = await this.prisma.hostProfile.update({
+      where: { id: h.id },
+      data: { kycStatus: 'PENDING_REVIEW' },
+    });
+    await this.audit.log({
+      actor: user,
+      action: 'host.kyc.submit',
+      resourceType: 'HostProfile',
+      resourceId: h.id,
+      oldValue: { kycStatus: h.kycStatus },
+      newValue: { kycStatus: 'PENDING_REVIEW' },
+    });
     return toHostProfileDto(updated);
   }
 
@@ -81,8 +114,16 @@ export class HostsService {
    */
   async requestPayoutOnboarding(user: AuthUser) {
     const h = await this.requireHost(user);
-    if (h.payoutAccountStatus === 'ACTIVE') return { status: h.payoutAccountStatus, providerFlowAvailable: false, message: 'Payout account already active.' };
-    await this.prisma.hostProfile.update({ where: { id: h.id }, data: { payoutAccountStatus: 'PENDING' } });
+    if (h.payoutAccountStatus === 'ACTIVE')
+      return {
+        status: h.payoutAccountStatus,
+        providerFlowAvailable: false,
+        message: 'Payout account already active.',
+      };
+    await this.prisma.hostProfile.update({
+      where: { id: h.id },
+      data: { payoutAccountStatus: 'PENDING' },
+    });
     return {
       status: 'PENDING' as const,
       providerFlowAvailable: false,

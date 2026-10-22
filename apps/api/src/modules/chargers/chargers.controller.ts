@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import {
@@ -73,7 +85,11 @@ export class ChargersController {
 
   @Roles('HOST')
   @Patch(':id')
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() body: UpdateChargerDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdateChargerDto,
+  ) {
     return this.chargers.update(user, id, body);
   }
 
@@ -101,7 +117,11 @@ export class ChargersController {
   @Roles('HOST')
   @Post(':id/pause')
   @HttpCode(200)
-  pause(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() body: PauseDto) {
+  pause(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: PauseDto,
+  ) {
     return this.chargers.setPaused(user, id, true, body.reason);
   }
 
@@ -114,13 +134,21 @@ export class ChargersController {
 
   @Roles('HOST')
   @Put(':id/availability')
-  setAvailability(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() body: AvailabilityDto) {
+  setAvailability(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: AvailabilityDto,
+  ) {
     return this.chargers.setAvailability(user, id, body);
   }
 
   @Roles('HOST')
   @Post(':id/exceptions')
-  addException(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() body: CreateExceptionDto) {
+  addException(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: CreateExceptionDto,
+  ) {
     return this.chargers.addException(user, id, body);
   }
 
@@ -136,20 +164,32 @@ export class ChargersController {
 
   @Roles('HOST')
   @Post(':id/photos')
-  photoUpload(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() body: CreatePhotoUploadDto) {
+  photoUpload(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: CreatePhotoUploadDto,
+  ) {
     return this.chargers.createPhotoUpload(user, id, body);
   }
 
   @Roles('HOST')
   @Post(':id/photos/:photoId/complete')
   @HttpCode(200)
-  photoComplete(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Param('photoId', ParseUUIDPipe) photoId: string) {
+  photoComplete(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('photoId', ParseUUIDPipe) photoId: string,
+  ) {
     return this.chargers.completePhotoUpload(user, id, photoId);
   }
 
   @Roles('HOST')
   @Delete(':id/photos/:photoId')
-  photoDelete(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Param('photoId', ParseUUIDPipe) photoId: string) {
+  photoDelete(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('photoId', ParseUUIDPipe) photoId: string,
+  ) {
     return this.chargers.removePhoto(user, id, photoId);
   }
 
@@ -157,7 +197,11 @@ export class ChargersController {
   @Public()
   @OptionalAuth()
   @Get(':id')
-  detail(@Param('id', ParseUUIDPipe) id: string, @MaybeUser() user?: AuthUser, @Query('vehicleId') vehicleId?: string) {
+  detail(
+    @Param('id', ParseUUIDPipe) id: string,
+    @MaybeUser() user?: AuthUser,
+    @Query('vehicleId') vehicleId?: string,
+  ) {
     return this.publicChargers.detail(id, user, vehicleId);
   }
 

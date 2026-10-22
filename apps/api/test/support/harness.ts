@@ -8,7 +8,10 @@ import { AppModule } from '../../src/app.module';
 import { CryptoService } from '../../src/common/crypto/crypto.service';
 import { PrismaService } from '../../src/common/prisma/prisma.service';
 import { env } from '../../src/config/env';
-import { PaymentProviderRegistry, PROVIDER_REGISTRY } from '../../src/modules/payments/providers/provider-registry';
+import {
+  PaymentProviderRegistry,
+  PROVIDER_REGISTRY,
+} from '../../src/modules/payments/providers/provider-registry';
 import { FakeRazorpay } from './fake-razorpay';
 
 export interface TestCtx {
@@ -44,7 +47,9 @@ export async function createTestApp(opts: { razorpay?: boolean } = {}): Promise<
 export async function resetDb(prisma: PrismaClient): Promise<void> {
   const tables = await prisma.$queryRaw<Array<{ tablename: string }>>`
     SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename NOT IN ('_prisma_migrations', 'spatial_ref_sys')`;
-  await prisma.$executeRawUnsafe(`TRUNCATE ${tables.map((t) => `"${t.tablename}"`).join(', ')} CASCADE`);
+  await prisma.$executeRawUnsafe(
+    `TRUNCATE ${tables.map((t) => `"${t.tablename}"`).join(', ')} CASCADE`,
+  );
 }
 
 let phoneSeq = 0;
@@ -53,9 +58,21 @@ export function testPhone(): string {
   return `+9198${String(Date.now()).slice(-5)}${String(phoneSeq).padStart(3, '0')}`;
 }
 
-export async function createUser(ctx: TestCtx, roles: Role[] = ['DRIVER'], extra: Partial<Prisma.UserCreateInput> = {}) {
+export async function createUser(
+  ctx: TestCtx,
+  roles: Role[] = ['DRIVER'],
+  extra: Partial<Prisma.UserCreateInput> = {},
+) {
   const user = await ctx.prisma.user.create({
-    data: { phone: testPhone(), name: `Test ${roles.join('/')}`, roles, consentAcceptedAt: new Date(), consentVersion: '2026-10-v1', driverProfile: { create: {} }, ...extra },
+    data: {
+      phone: testPhone(),
+      name: `Test ${roles.join('/')}`,
+      roles,
+      consentAcceptedAt: new Date(),
+      consentVersion: '2026-10-v1',
+      driverProfile: { create: {} },
+      ...extra,
+    },
   });
   const token = await ctx.jwt.signAsync({ sub: user.id, typ: 'access' });
   return { user, token, auth: { Authorization: `Bearer ${token}` } };
@@ -64,7 +81,16 @@ export async function createUser(ctx: TestCtx, roles: Role[] = ['DRIVER'], extra
 export async function createVerifiedHost(ctx: TestCtx) {
   const u = await createUser(ctx, ['DRIVER', 'HOST']);
   const host = await ctx.prisma.hostProfile.create({
-    data: { userId: u.user.id, displayName: 'Test Host', hostType: 'INDIVIDUAL', kycStatus: 'VERIFIED', verifiedAt: new Date(), payoutAccountStatus: 'ACTIVE', attestationAcceptedAt: new Date(), attestationVersion: '2026-10-v1' },
+    data: {
+      userId: u.user.id,
+      displayName: 'Test Host',
+      hostType: 'INDIVIDUAL',
+      kycStatus: 'VERIFIED',
+      verifiedAt: new Date(),
+      payoutAccountStatus: 'ACTIVE',
+      attestationAcceptedAt: new Date(),
+      attestationVersion: '2026-10-v1',
+    },
   });
   return { ...u, host };
 }
@@ -94,7 +120,9 @@ export async function createCharger(ctx: TestCtx, hostId: string, o: ChargerOpts
       isPublished: o.isPublished ?? status === 'VERIFIED',
       verifiedAt: status === 'VERIFIED' ? new Date() : null,
       currentType: o.currentType ?? 'AC',
-      maxPowerKw: new Prisma.Decimal(Math.max(...(o.connectors ?? [['TYPE_2', 7.2]]).map(([, p]) => p))),
+      maxPowerKw: new Prisma.Decimal(
+        Math.max(...(o.connectors ?? [['TYPE_2', 7.2]]).map(([, p]) => p)),
+      ),
       parkingType: 'PRIVATE_DRIVEWAY',
       pricingUnit: 'PER_HOUR',
       unitPriceMinor: o.priceMinor ?? 12_000,
@@ -109,16 +137,34 @@ export async function createCharger(ctx: TestCtx, hostId: string, o: ChargerOpts
       pincode: '560001',
       publicLat: new Prisma.Decimal(lat + 0.003),
       publicLng: new Prisma.Decimal(lng),
-      connectors: { create: (o.connectors ?? [['TYPE_2', 7.2]]).map(([t, p]) => ({ connectorType: t as never, powerKw: new Prisma.Decimal(p) })) },
-      availabilityRules: { create: [0, 1, 2, 3, 4, 5, 6].map((d) => ({ dayOfWeek: d, startMinute: 0, endMinute: 1440 })) },
+      connectors: {
+        create: (o.connectors ?? [['TYPE_2', 7.2]]).map(([t, p]) => ({
+          connectorType: t as never,
+          powerKw: new Prisma.Decimal(p),
+        })),
+      },
+      availabilityRules: {
+        create: [0, 1, 2, 3, 4, 5, 6].map((d) => ({
+          dayOfWeek: d,
+          startMinute: 0,
+          endMinute: 1440,
+        })),
+      },
     },
   });
-  await ctx.prisma.$executeRaw`UPDATE chargers SET location = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+  await ctx.prisma
+    .$executeRaw`UPDATE chargers SET location = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
     "publicLocation" = ST_SetSRID(ST_MakePoint(${lng}, ${lat + 0.003}), 4326)::geography WHERE id = ${c.id}::uuid`;
   return c;
 }
 
-export async function createVehicle(ctx: TestCtx, ownerId: string, connectors: string[] = ['TYPE_2', 'CCS2'], maxAcKw = 7.2, maxDcKw: number | null = 50) {
+export async function createVehicle(
+  ctx: TestCtx,
+  ownerId: string,
+  connectors: string[] = ['TYPE_2', 'CCS2'],
+  maxAcKw = 7.2,
+  maxDcKw: number | null = 50,
+) {
   return ctx.prisma.vehicle.create({
     data: {
       ownerId,
@@ -137,16 +183,41 @@ export function slot(daysAhead = 2, hour = 6, durationMinutes = 60) {
   const d = new Date();
   d.setUTCDate(d.getUTCDate() + daysAhead);
   d.setUTCHours(hour, 0, 0, 0);
-  return { startAt: d.toISOString(), endAt: new Date(d.getTime() + durationMinutes * 60_000).toISOString() };
+  return {
+    startAt: d.toISOString(),
+    endAt: new Date(d.getTime() + durationMinutes * 60_000).toISOString(),
+  };
 }
 
 export const idem = () => ({ 'Idempotency-Key': randomUUID() });
 
-export async function bookAndPayDemo(ctx: TestCtx, driver: { auth: Record<string, string> }, chargerId: string, vehicleId: string, s = slot()) {
-  const b = await ctx.http().post('/api/v1/bookings').set(driver.auth).set(idem()).send({ chargerId, vehicleId, connectorType: 'TYPE_2', ...s, acceptPolicies: true });
+export async function bookAndPayDemo(
+  ctx: TestCtx,
+  driver: { auth: Record<string, string> },
+  chargerId: string,
+  vehicleId: string,
+  s = slot(),
+) {
+  const b = await ctx
+    .http()
+    .post('/api/v1/bookings')
+    .set(driver.auth)
+    .set(idem())
+    .send({ chargerId, vehicleId, connectorType: 'TYPE_2', ...s, acceptPolicies: true });
   if (b.status !== 201) throw new Error(`booking failed: ${JSON.stringify(b.body)}`);
-  await ctx.http().post('/api/v1/payments/orders').set(driver.auth).set(idem()).send({ bookingId: b.body.id }).expect(201);
-  const pay = await ctx.http().post('/api/v1/payments/demo/complete').set(driver.auth).send({ bookingId: b.body.id, outcome: 'SUCCESS' }).expect(200);
+  await ctx
+    .http()
+    .post('/api/v1/payments/orders')
+    .set(driver.auth)
+    .set(idem())
+    .send({ bookingId: b.body.id })
+    .expect(201);
+  const pay = await ctx
+    .http()
+    .post('/api/v1/payments/demo/complete')
+    .set(driver.auth)
+    .send({ bookingId: b.body.id, outcome: 'SUCCESS' })
+    .expect(200);
   return { booking: b.body, result: pay.body };
 }
 
@@ -155,5 +226,8 @@ export function soonSlot(minHours = 2, durationMinutes = 60) {
   const d = new Date(Date.now() + minHours * 3600_000);
   d.setUTCMinutes(0, 0, 0);
   d.setUTCHours(d.getUTCHours() + 1);
-  return { startAt: d.toISOString(), endAt: new Date(d.getTime() + durationMinutes * 60_000).toISOString() };
+  return {
+    startAt: d.toISOString(),
+    endAt: new Date(d.getTime() + durationMinutes * 60_000).toISOString(),
+  };
 }

@@ -9,11 +9,15 @@ import { api } from './api';
  * FCM additionally needs the Firebase iOS SDK + APNs key (documented as future work).
  */
 export async function registerForPush(): Promise<'registered' | 'skipped' | 'denied'> {
-  if (Platform.OS === 'web' || Constants.executionEnvironment === ExecutionEnvironment.StoreClient) return 'skipped';
+  if (Platform.OS === 'web' || Constants.executionEnvironment === ExecutionEnvironment.StoreClient)
+    return 'skipped';
   const { status } = await Notifications.requestPermissionsAsync();
   if (status !== 'granted') return 'denied';
   if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', { name: 'Bookings & safety', importance: Notifications.AndroidImportance.HIGH });
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Bookings & safety',
+      importance: Notifications.AndroidImportance.HIGH,
+    });
   }
   try {
     const token = await Notifications.getDevicePushTokenAsync();

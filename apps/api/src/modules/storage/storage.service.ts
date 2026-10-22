@@ -20,8 +20,11 @@ const DOWNLOAD_URL_TTL_S = 600;
 const SIGNATURES: Record<string, (b: Buffer) => boolean> = {
   'application/pdf': (b) => b.subarray(0, 5).toString('latin1') === '%PDF-',
   'image/jpeg': (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
-  'image/png': (b) => b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
-  'image/webp': (b) => b.subarray(0, 4).toString('latin1') === 'RIFF' && b.subarray(8, 12).toString('latin1') === 'WEBP',
+  'image/png': (b) =>
+    b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+  'image/webp': (b) =>
+    b.subarray(0, 4).toString('latin1') === 'RIFF' &&
+    b.subarray(8, 12).toString('latin1') === 'WEBP',
 };
 
 export function matchesSignature(mimeType: string, head: Buffer): boolean {
@@ -65,7 +68,9 @@ export class StorageService implements OnModuleInit {
           : undefined,
     };
     this.client = configured ? new S3Client({ ...base, endpoint: env.S3_ENDPOINT }) : null;
-    this.presignClient = configured ? new S3Client({ ...base, endpoint: env.S3_PUBLIC_ENDPOINT ?? env.S3_ENDPOINT }) : null;
+    this.presignClient = configured
+      ? new S3Client({ ...base, endpoint: env.S3_PUBLIC_ENDPOINT ?? env.S3_ENDPOINT })
+      : null;
   }
 
   get enabled(): boolean {
@@ -88,13 +93,19 @@ export class StorageService implements OnModuleInit {
 
   private requireClient(): S3Client {
     if (!this.client || !this.presignClient) {
-      throw AppError.unavailable('STORAGE_NOT_CONFIGURED', 'File uploads are not configured on this server');
+      throw AppError.unavailable(
+        'STORAGE_NOT_CONFIGURED',
+        'File uploads are not configured on this server',
+      );
     }
     return this.client;
   }
 
   newKey(prefix: string, mimeType: string): string {
-    const ext = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[mimeType] ?? 'bin';
+    const ext =
+      { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[
+        mimeType
+      ] ?? 'bin';
     return `${prefix}/${randomUUID()}.${ext}`;
   }
 
@@ -108,16 +119,30 @@ export class StorageService implements OnModuleInit {
       ServerSideEncryption: this.env.S3_ENDPOINT ? undefined : 'AES256',
     });
     const uploadUrl = await getSignedUrl(this.presignClient!, cmd, { expiresIn: UPLOAD_URL_TTL_S });
-    return { key, uploadUrl, method: 'PUT', headers: { 'Content-Type': mimeType }, expiresInSeconds: UPLOAD_URL_TTL_S };
+    return {
+      key,
+      uploadUrl,
+      method: 'PUT',
+      headers: { 'Content-Type': mimeType },
+      expiresInSeconds: UPLOAD_URL_TTL_S,
+    };
   }
 
   async presignDownload(key: string): Promise<string | null> {
     if (!this.presignClient) return null;
-    return getSignedUrl(this.presignClient, new GetObjectCommand({ Bucket: this.bucket, Key: key }), { expiresIn: DOWNLOAD_URL_TTL_S });
+    return getSignedUrl(
+      this.presignClient,
+      new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+      { expiresIn: DOWNLOAD_URL_TTL_S },
+    );
   }
 
   /** Verify an uploaded object: exists, size matches declaration, magic bytes match MIME. Deletes on failure. */
-  async verifyUpload(key: string, mimeType: string, maxBytes: number): Promise<{ ok: boolean; sizeBytes: number; reason?: string }> {
+  async verifyUpload(
+    key: string,
+    mimeType: string,
+    maxBytes: number,
+  ): Promise<{ ok: boolean; sizeBytes: number; reason?: string }> {
     const client = this.requireClient();
     let size = 0;
     try {
@@ -127,11 +152,15 @@ export class StorageService implements OnModuleInit {
       return { ok: false, sizeBytes: 0, reason: 'File was not uploaded' };
     }
     const fail = async (reason: string) => {
-      await client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key })).catch(() => undefined);
+      await client
+        .send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }))
+        .catch(() => undefined);
       return { ok: false, sizeBytes: size, reason };
     };
     if (size <= 0 || size > maxBytes) return fail('File size is not allowed');
-    const obj = await client.send(new GetObjectCommand({ Bucket: this.bucket, Key: key, Range: 'bytes=0-15' }));
+    const obj = await client.send(
+      new GetObjectCommand({ Bucket: this.bucket, Key: key, Range: 'bytes=0-15' }),
+    );
     const bytes = Buffer.from(await obj.Body!.transformToByteArray());
     if (!matchesSignature(mimeType, bytes)) return fail('File content does not match its type');
     return { ok: true, sizeBytes: size };

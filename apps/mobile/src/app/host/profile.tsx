@@ -15,13 +15,29 @@ export default function HostProfile() {
         <KeyValue k="Host type" v={label(h.hostType)} />
         <KeyValue k="Identity" v={label(h.kycStatus)} />
         <KeyValue k="Payout account" v={label(h.payoutAccountStatus)} />
-        <KeyValue k="Rating" v={h.ratingCount ? `★ ${h.ratingAvg} (${h.ratingCount})` : 'No reviews yet'} />
+        <KeyValue
+          k="Rating"
+          v={h.ratingCount ? `★ ${h.ratingAvg} (${h.ratingCount})` : 'No reviews yet'}
+        />
         <KeyValue k="Hosting since" v={istDay(h.createdAt)} />
       </Card>
       {h.suspendedAt && <Badge tone="danger" label="Host account suspended" />}
-      <Button title="Switch to driver mode" icon="car-outline" onPress={() => router.replace('/explore')} />
-      <Button title="Help & support" variant="secondary" icon="help-buoy-outline" onPress={() => router.push('/support')} />
-      <Button title="Sign out" variant="ghost" onPress={() => void signOut().then(() => router.replace('/login'))} />
+      <Button
+        title="Switch to driver mode"
+        icon="car-outline"
+        onPress={() => router.replace('/explore')}
+      />
+      <Button
+        title="Help & support"
+        variant="secondary"
+        icon="help-buoy-outline"
+        onPress={() => router.push('/support')}
+      />
+      <Button
+        title="Sign out"
+        variant="ghost"
+        onPress={() => void signOut().then(() => router.replace('/login'))}
+      />
     </Screen>
   );
 }

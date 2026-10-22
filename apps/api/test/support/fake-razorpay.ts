@@ -1,5 +1,8 @@
 import { createHmac, randomUUID } from 'node:crypto';
-import type { ProviderPayment, ProviderRefund } from '../../src/modules/payments/providers/payment-provider';
+import type {
+  ProviderPayment,
+  ProviderRefund,
+} from '../../src/modules/payments/providers/payment-provider';
 import { RazorpayProvider } from '../../src/modules/payments/providers/razorpay.provider';
 
 export const FAKE_KEY_SECRET = 'rzp_test_secret_for_tests';
@@ -27,7 +30,18 @@ export class FakeRazorpay extends RazorpayProvider {
   /** Simulate the customer paying in Checkout. */
   pay(orderId: string, status: ProviderPayment['status'] = 'captured', fee = 236): ProviderPayment {
     const o = this.orders.get(orderId)!;
-    const p: ProviderPayment = { id: `pay_${randomUUID().slice(0, 14)}`, orderId, status, amountMinor: o.amount, currency: 'INR', method: 'upi', feeMinor: status === 'captured' ? fee : null, taxMinor: status === 'captured' ? 36 : null, amountRefundedMinor: 0, errorDescription: status === 'failed' ? 'Payment declined' : null };
+    const p: ProviderPayment = {
+      id: `pay_${randomUUID().slice(0, 14)}`,
+      orderId,
+      status,
+      amountMinor: o.amount,
+      currency: 'INR',
+      method: 'upi',
+      feeMinor: status === 'captured' ? fee : null,
+      taxMinor: status === 'captured' ? 36 : null,
+      amountRefundedMinor: 0,
+      errorDescription: status === 'failed' ? 'Payment declined' : null,
+    };
     this.payments.set(p.id, p);
     return p;
   }
@@ -37,8 +51,28 @@ export class FakeRazorpay extends RazorpayProvider {
   }
 
   webhook(event: string, payment: ProviderPayment, eventId = `evt_${randomUUID().slice(0, 12)}`) {
-    const body = JSON.stringify({ entity: 'event', event, payload: { payment: { entity: { id: payment.id, order_id: payment.orderId, status: payment.status, amount: payment.amountMinor, currency: 'INR', card: { last4: '4242' }, email: 'x@example.com' } } } });
-    return { body, signature: createHmac('sha256', FAKE_WEBHOOK_SECRET).update(body).digest('hex'), eventId };
+    const body = JSON.stringify({
+      entity: 'event',
+      event,
+      payload: {
+        payment: {
+          entity: {
+            id: payment.id,
+            order_id: payment.orderId,
+            status: payment.status,
+            amount: payment.amountMinor,
+            currency: 'INR',
+            card: { last4: '4242' },
+            email: 'x@example.com',
+          },
+        },
+      },
+    });
+    return {
+      body,
+      signature: createHmac('sha256', FAKE_WEBHOOK_SECRET).update(body).digest('hex'),
+      eventId,
+    };
   }
 
   override async fetchPayment(id: string) {
@@ -59,7 +93,13 @@ export class FakeRazorpay extends RazorpayProvider {
   }
 
   override async refund(paymentId: string, amountMinor: number, internalRefundId: string) {
-    const r: ProviderRefund = { id: `rfnd_${randomUUID().slice(0, 14)}`, paymentId, amountMinor, status: 'processed', internalRefundId };
+    const r: ProviderRefund = {
+      id: `rfnd_${randomUUID().slice(0, 14)}`,
+      paymentId,
+      amountMinor,
+      status: 'processed',
+      internalRefundId,
+    };
     this.refunds.push(r);
     const p = this.payments.get(paymentId);
     if (p) p.amountRefundedMinor += amountMinor;

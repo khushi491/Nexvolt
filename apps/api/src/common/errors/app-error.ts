@@ -34,7 +34,9 @@ export class AppError extends Error {
 
 /** Postgres exclusion_violation on the booking overlap constraint. */
 export function isOverlapViolation(e: unknown): boolean {
-  const s = String((e as { message?: string })?.message ?? '') + JSON.stringify((e as { meta?: unknown })?.meta ?? '');
+  const s =
+    String((e as { message?: string })?.message ?? '') +
+    JSON.stringify((e as { meta?: unknown })?.meta ?? '');
   return s.includes('bookings_no_overlap') || s.includes('23P01');
 }
 
@@ -45,5 +47,8 @@ export function isUniqueViolation(e: unknown, target?: string): boolean {
     const t = err.meta?.target;
     return Array.isArray(t) ? t.some((x) => x.includes(target)) : String(t ?? '').includes(target);
   }
-  return String(err?.message ?? '').includes('23505') && (!target || String(err?.message).includes(target));
+  return (
+    String(err?.message ?? '').includes('23505') &&
+    (!target || String(err?.message).includes(target))
+  );
 }

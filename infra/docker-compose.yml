@@ -10,24 +10,24 @@ services:
       POSTGRES_PASSWORD: nexvolt_local_only
       POSTGRES_DB: nexvolt
     ports:
-      - "55432:5432"
+      - '55432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nexvolt -d nexvolt"]
+      test: ['CMD-SHELL', 'pg_isready -U nexvolt -d nexvolt']
       interval: 5s
       timeout: 5s
       retries: 20
 
   redis:
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ['redis-server', '--appendonly', 'yes']
     ports:
-      - "56379:6379"
+      - '56379:6379'
     volumes:
       - redisdata:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 3s
       retries: 20
@@ -37,9 +37,9 @@ services:
   # Production uses AWS S3 with private buckets + presigned URLs.
   s3:
     image: chrislusf/seaweedfs:latest
-    command: ["server", "-s3", "-s3.port=8333", "-s3.config=/etc/seaweedfs/s3.json", "-dir=/data"]
+    command: ['server', '-s3', '-s3.port=8333', '-s3.config=/etc/seaweedfs/s3.json', '-dir=/data']
     ports:
-      - "58333:8333"
+      - '58333:8333'
     volumes:
       - s3data:/data
       - ./seaweedfs-s3.json:/etc/seaweedfs/s3.json:ro

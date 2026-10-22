@@ -19,7 +19,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     [
       'expo-location',
-      { locationWhenInUsePermission: 'Nexvolt uses your location to show chargers near you. You can search by area instead.' },
+      {
+        locationWhenInUsePermission:
+          'Nexvolt uses your location to show chargers near you. You can search by area instead.',
+      },
     ],
   ],
 });

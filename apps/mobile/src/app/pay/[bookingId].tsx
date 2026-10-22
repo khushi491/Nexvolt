@@ -16,7 +16,11 @@ export default function Pay() {
   const { bookingId, url } = useLocalSearchParams<{ bookingId: string; url: string }>();
   const qc = useQueryClient();
   const [done, setDone] = useState(false);
-  const booking = useQuery({ queryKey: ['booking', bookingId], queryFn: () => api.bookings.get(bookingId), refetchInterval: Platform.OS === 'web' && !done ? 3000 : false });
+  const booking = useQuery({
+    queryKey: ['booking', bookingId],
+    queryFn: () => api.bookings.get(bookingId),
+    refetchInterval: Platform.OS === 'web' && !done ? 3000 : false,
+  });
   const checkout = reachable(url);
 
   const finish = () => {
@@ -36,7 +40,9 @@ export default function Pay() {
       <Screen edges={[]}>
         <Stack.Screen options={{ title: 'Payment' }} />
         <BookingStepper steps={['Details', 'Pay', 'Confirmed']} current={1} />
-        <Banner tone="info" icon="lock-closed-outline">Checkout opens in a new tab. Return here after paying — this page updates automatically.</Banner>
+        <Banner tone="info" icon="lock-closed-outline">
+          Checkout opens in a new tab. Return here after paying — this page updates automatically.
+        </Banner>
         <Button title="Open secure checkout" onPress={() => void Linking.openURL(checkout)} />
         <Button title="I’ve finished — view booking" variant="secondary" onPress={finish} />
       </Screen>
@@ -45,11 +51,15 @@ export default function Pay() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface.background }}>
       <Stack.Screen options={{ title: 'Payment' }} />
-      <View style={{ padding: spacing[4] }}><BookingStepper steps={['Details', 'Pay', 'Confirmed']} current={1} /></View>
+      <View style={{ padding: spacing[4] }}>
+        <BookingStepper steps={['Details', 'Pay', 'Confirmed']} current={1} />
+      </View>
       <WebView
         source={{ uri: checkout }}
         startInLoadingState
-        renderLoading={() => <ActivityIndicator style={{ marginTop: 40 }} color={colors.brand.primary} />}
+        renderLoading={() => (
+          <ActivityIndicator style={{ marginTop: 40 }} color={colors.brand.primary} />
+        )}
         onMessage={(e) => {
           try {
             const msg = JSON.parse(e.nativeEvent.data) as { type?: string };
@@ -62,7 +72,9 @@ export default function Pay() {
         setSupportMultipleWindows={false}
       />
       <View style={{ padding: spacing[4] }}>
-        <T.Tiny style={{ textAlign: 'center' }}>Having trouble? Close this screen — your slot stays held until the payment window ends.</T.Tiny>
+        <T.Tiny style={{ textAlign: 'center' }}>
+          Having trouble? Close this screen — your slot stays held until the payment window ends.
+        </T.Tiny>
       </View>
     </View>
   );

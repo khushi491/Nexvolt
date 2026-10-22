@@ -42,7 +42,11 @@ type FeeSettings = Pick<
 >;
 
 /** Estimated deliverable energy in Wh (integer). Purely an estimate. */
-export function estimateEnergyWh(effectivePowerKw: number, durationMinutes: number, loadFactorBps: number): number {
+export function estimateEnergyWh(
+  effectivePowerKw: number,
+  durationMinutes: number,
+  loadFactorBps: number,
+): number {
   if (effectivePowerKw <= 0 || durationMinutes <= 0) return 0;
   const wh = (effectivePowerKw * 1000 * durationMinutes) / 60;
   return Math.floor((wh * loadFactorBps) / BPS_DENOMINATOR);
@@ -52,11 +56,27 @@ export function chargingFeeForEnergy(unitPriceMinorPerKwh: number, energyWh: num
   return Math.round((unitPriceMinorPerKwh * energyWh) / 1000);
 }
 
-export function chargingFeeForDuration(unitPriceMinorPerHour: number, durationMinutes: number): number {
+export function chargingFeeForDuration(
+  unitPriceMinorPerHour: number,
+  durationMinutes: number,
+): number {
   return Math.round((unitPriceMinorPerHour * durationMinutes) / 60);
 }
 
-function build(chargingFeeMinor: number, base: Omit<PriceBreakdown, 'chargingFeeMinor' | 'serviceFeeMinor' | 'serviceFeeTaxMinor' | 'totalMinor' | 'commissionMinor' | 'hostEarningsBeforeGatewayFeesMinor' | 'lineItems'>, fees: FeeSettings): PriceBreakdown {
+function build(
+  chargingFeeMinor: number,
+  base: Omit<
+    PriceBreakdown,
+    | 'chargingFeeMinor'
+    | 'serviceFeeMinor'
+    | 'serviceFeeTaxMinor'
+    | 'totalMinor'
+    | 'commissionMinor'
+    | 'hostEarningsBeforeGatewayFeesMinor'
+    | 'lineItems'
+  >,
+  fees: FeeSettings,
+): PriceBreakdown {
   const serviceFeeMinor = applyBps(chargingFeeMinor, fees.driverServiceFeeBps);
   const serviceFeeTaxMinor = applyBps(serviceFeeMinor, fees.serviceFeeTaxBps);
   const commissionMinor = applyBps(chargingFeeMinor, fees.commissionBps);
@@ -67,8 +87,18 @@ function build(chargingFeeMinor: number, base: Omit<PriceBreakdown, 'chargingFee
       amountMinor: chargingFeeMinor,
     },
   ];
-  if (serviceFeeMinor > 0) lineItems.push({ code: 'SERVICE_FEE', label: 'Nexvolt service fee', amountMinor: serviceFeeMinor });
-  if (serviceFeeTaxMinor > 0) lineItems.push({ code: 'SERVICE_FEE_TAX', label: 'Tax on service fee', amountMinor: serviceFeeTaxMinor });
+  if (serviceFeeMinor > 0)
+    lineItems.push({
+      code: 'SERVICE_FEE',
+      label: 'Nexvolt service fee',
+      amountMinor: serviceFeeMinor,
+    });
+  if (serviceFeeTaxMinor > 0)
+    lineItems.push({
+      code: 'SERVICE_FEE_TAX',
+      label: 'Tax on service fee',
+      amountMinor: serviceFeeTaxMinor,
+    });
   return {
     ...base,
     chargingFeeMinor,
@@ -90,7 +120,11 @@ function build(chargingFeeMinor: number, base: Omit<PriceBreakdown, 'chargingFee
 export function quotePrice(input: PriceInput, fees: FeeSettings): PriceBreakdown {
   assertMinor(input.unitPriceMinor, 'unitPriceMinor');
   if (input.durationMinutes <= 0) throw new RangeError('durationMinutes must be positive');
-  const estimatedEnergyWh = estimateEnergyWh(input.effectivePowerKw, input.durationMinutes, fees.estimateLoadFactorBps);
+  const estimatedEnergyWh = estimateEnergyWh(
+    input.effectivePowerKw,
+    input.durationMinutes,
+    fees.estimateLoadFactorBps,
+  );
   const chargingFeeMinor =
     input.pricingUnit === 'PER_HOUR'
       ? chargingFeeForDuration(input.unitPriceMinor, input.durationMinutes)
@@ -120,9 +154,15 @@ export interface KwhSettlement {
 }
 
 /** Final settlement of a per-kWh booking from verified energy. */
-export function settleKwh(prepaid: PriceBreakdown, verifiedEnergyWh: number, fees: FeeSettings): KwhSettlement {
-  if (prepaid.pricingUnit !== 'PER_KWH') throw new Error('settleKwh only applies to PER_KWH bookings');
-  if (!Number.isInteger(verifiedEnergyWh) || verifiedEnergyWh < 0) throw new RangeError('verifiedEnergyWh must be a non-negative integer');
+export function settleKwh(
+  prepaid: PriceBreakdown,
+  verifiedEnergyWh: number,
+  fees: FeeSettings,
+): KwhSettlement {
+  if (prepaid.pricingUnit !== 'PER_KWH')
+    throw new Error('settleKwh only applies to PER_KWH bookings');
+  if (!Number.isInteger(verifiedEnergyWh) || verifiedEnergyWh < 0)
+    throw new RangeError('verifiedEnergyWh must be a non-negative integer');
   const raw = chargingFeeForEnergy(prepaid.unitPriceMinor, verifiedEnergyWh);
   const cappedAtPrepaid = raw > prepaid.chargingFeeMinor;
   const finalChargingFeeMinor = Math.min(raw, prepaid.chargingFeeMinor);
@@ -169,11 +209,16 @@ export function computeCancellationRefund(args: {
   let reason: string;
   if (args.cancelledBy !== 'DRIVER') {
     refundBps = BPS_DENOMINATOR;
-    reason = args.cancelledBy === 'HOST' ? 'Cancelled by host — full refund' : 'Cancelled by Nexvolt — full refund';
+    reason =
+      args.cancelledBy === 'HOST'
+        ? 'Cancelled by host — full refund'
+        : 'Cancelled by Nexvolt — full refund';
   } else if (args.minutesBeforeStart < 0) {
     reason = 'Cancelled after the slot started — not refundable under policy';
   } else {
-    const tiers = [...args.tiers[args.policy]].sort((a, b) => b.minMinutesBeforeStart - a.minMinutesBeforeStart);
+    const tiers = [...args.tiers[args.policy]].sort(
+      (a, b) => b.minMinutesBeforeStart - a.minMinutesBeforeStart,
+    );
     const tier = tiers.find((t) => args.minutesBeforeStart >= t.minMinutesBeforeStart);
     refundBps = tier?.refundBps ?? 0;
     reason = tier
@@ -181,7 +226,8 @@ export function computeCancellationRefund(args: {
       : `${args.policy.toLowerCase()} policy: no refund this close to start`;
   }
   const refundMinor = applyBps(paidTotalMinor, refundBps);
-  const chargingFeeRefundMinor = paidTotalMinor === 0 ? 0 : proportion(chargingFeeMinor, refundMinor, paidTotalMinor);
+  const chargingFeeRefundMinor =
+    paidTotalMinor === 0 ? 0 : proportion(chargingFeeMinor, refundMinor, paidTotalMinor);
   return {
     refundBps,
     refundMinor,
@@ -199,13 +245,23 @@ export function hostLedgerForCapture(args: {
   gatewayFeeBearer: 'HOST' | 'PLATFORM';
   paidTotalMinor: number;
 }): Array<{ type: 'BOOKING_GROSS' | 'PLATFORM_COMMISSION' | 'PAYMENT_FEE'; amountMinor: number }> {
-  const lines: Array<{ type: 'BOOKING_GROSS' | 'PLATFORM_COMMISSION' | 'PAYMENT_FEE'; amountMinor: number }> = [
+  const lines: Array<{
+    type: 'BOOKING_GROSS' | 'PLATFORM_COMMISSION' | 'PAYMENT_FEE';
+    amountMinor: number;
+  }> = [
     { type: 'BOOKING_GROSS', amountMinor: args.chargingFeeMinor },
-    { type: 'PLATFORM_COMMISSION', amountMinor: -applyBps(args.chargingFeeMinor, args.commissionBps) },
+    {
+      type: 'PLATFORM_COMMISSION',
+      amountMinor: -applyBps(args.chargingFeeMinor, args.commissionBps),
+    },
   ];
   if (args.gatewayFeeBearer === 'HOST' && args.gatewayFeeMinor > 0) {
     // Gateway fee is charged on the whole payment; the host bears the share attributable to the charging fee.
-    const share = proportion(args.gatewayFeeMinor, args.chargingFeeMinor, Math.max(1, args.paidTotalMinor));
+    const share = proportion(
+      args.gatewayFeeMinor,
+      args.chargingFeeMinor,
+      Math.max(1, args.paidTotalMinor),
+    );
     lines.push({ type: 'PAYMENT_FEE', amountMinor: -share });
   }
   return lines;
@@ -219,7 +275,11 @@ export function hostLedgerForRefund(args: {
 }): Array<{ type: 'REFUND_REVERSAL' | 'COMMISSION_REVERSAL'; amountMinor: number }> {
   if (args.chargingFeeRefundMinor <= 0) return [];
   const originalCommission = applyBps(args.chargingFeeMinor, args.commissionBps);
-  const commissionBack = proportion(originalCommission, args.chargingFeeRefundMinor, Math.max(1, args.chargingFeeMinor));
+  const commissionBack = proportion(
+    originalCommission,
+    args.chargingFeeRefundMinor,
+    Math.max(1, args.chargingFeeMinor),
+  );
   return [
     { type: 'REFUND_REVERSAL', amountMinor: -args.chargingFeeRefundMinor },
     { type: 'COMMISSION_REVERSAL', amountMinor: commissionBack },

@@ -1,7 +1,13 @@
 import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { BookingListQuerySchema, CancelBookingSchema, CreateBookingSchema, DeclineBookingSchema, QuoteBookingSchema } from '@nexvolt/shared';
+import {
+  BookingListQuerySchema,
+  CancelBookingSchema,
+  CreateBookingSchema,
+  DeclineBookingSchema,
+  QuoteBookingSchema,
+} from '@nexvolt/shared';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import type { AuthUser } from '../../common/auth/auth-user';
@@ -13,7 +19,9 @@ class CreateBookingDto extends createZodDto(CreateBookingSchema) {}
 class CancelBookingDto extends createZodDto(CancelBookingSchema) {}
 class DeclineBookingDto extends createZodDto(DeclineBookingSchema) {}
 class BookingListQueryDto extends createZodDto(BookingListQuerySchema) {}
-class HostBookingQueryDto extends createZodDto(BookingListQuerySchema.extend({ status: z.string().max(40).optional() })) {}
+class HostBookingQueryDto extends createZodDto(
+  BookingListQuerySchema.extend({ status: z.string().max(40).optional() }),
+) {}
 
 @ApiTags('bookings')
 @ApiBearerAuth()
@@ -31,7 +39,11 @@ export class BookingsController {
   @Post()
   @ApiHeader({ name: 'Idempotency-Key', required: true })
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  create(@CurrentUser() user: AuthUser, @Body() body: CreateBookingDto, @ReqMeta() meta: RequestMeta) {
+  create(
+    @CurrentUser() user: AuthUser,
+    @Body() body: CreateBookingDto,
+    @ReqMeta() meta: RequestMeta,
+  ) {
     return this.bookings.create(user, body, meta.idempotencyKey);
   }
 
@@ -52,7 +64,11 @@ export class BookingsController {
   }
 
   @Get(':id/access')
-  access(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @ReqMeta() meta: RequestMeta) {
+  access(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @ReqMeta() meta: RequestMeta,
+  ) {
     return this.bookings.access(user, id, meta);
   }
 
@@ -73,7 +89,12 @@ export class BookingsController {
 
   @Post(':id/cancel')
   @HttpCode(200)
-  cancel(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() body: CancelBookingDto, @ReqMeta() meta: RequestMeta) {
+  cancel(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: CancelBookingDto,
+    @ReqMeta() meta: RequestMeta,
+  ) {
     return this.bookings.cancel(user, id, body.reason, meta);
   }
 
@@ -87,7 +108,11 @@ export class BookingsController {
   @Roles('HOST')
   @Post(':id/decline')
   @HttpCode(200)
-  decline(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() body: DeclineBookingDto) {
+  decline(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: DeclineBookingDto,
+  ) {
     return this.bookings.decline(user, id, body.reason);
   }
 

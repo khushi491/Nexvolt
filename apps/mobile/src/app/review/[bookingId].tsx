@@ -18,15 +18,40 @@ export default function Review() {
     <Screen edges={[]}>
       <Stack.Screen options={{ title: 'Rate your session' }} />
       <T.H2>How was charging here?</T.H2>
-      <View accessibilityRole="radiogroup" accessibilityLabel="Rating" style={{ flexDirection: 'row', gap: 4 }}>
+      <View
+        accessibilityRole="radiogroup"
+        accessibilityLabel="Rating"
+        style={{ flexDirection: 'row', gap: 4 }}
+      >
         {[1, 2, 3, 4, 5].map((n) => (
-          <Pressable key={n} accessibilityRole="radio" accessibilityState={{ checked: rating === n }} accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`} onPress={() => setRating(n)} hitSlop={6} style={{ padding: 6 }}>
-            <Ionicons name={n <= rating ? 'star' : 'star-outline'} size={36} color={n <= rating ? colors.status.warning.solid : colors.text.muted} />
+          <Pressable
+            key={n}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: rating === n }}
+            accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`}
+            onPress={() => setRating(n)}
+            hitSlop={6}
+            style={{ padding: 6 }}
+          >
+            <Ionicons
+              name={n <= rating ? 'star' : 'star-outline'}
+              size={36}
+              color={n <= rating ? colors.status.warning.solid : colors.text.muted}
+            />
           </Pressable>
         ))}
       </View>
-      <Field label="Tell other drivers (optional)" value={comment} onChangeText={setComment} multiline maxLength={1000} style={{ minHeight: 100, textAlignVertical: 'top' }} />
-      <T.Tiny>Reviews show your first name only. Please don’t include addresses or phone numbers.</T.Tiny>
+      <Field
+        label="Tell other drivers (optional)"
+        value={comment}
+        onChangeText={setComment}
+        multiline
+        maxLength={1000}
+        style={{ minHeight: 100, textAlignVertical: 'top' }}
+      />
+      <T.Tiny>
+        Reviews show your first name only. Please don’t include addresses or phone numbers.
+      </T.Tiny>
       <Button
         title="Submit review"
         disabled={!rating}

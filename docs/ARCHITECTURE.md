@@ -117,16 +117,16 @@ Phone OTP (Twilio Verify in production, local emulator in development — refuse
 
 ## Code map (API)
 
-| Module | Responsibility |
-|---|---|
-| `common/` | env validation, Prisma, JWT guard + `@Roles`, errors/filter, audit, idempotency, crypto, Redis |
-| `auth`, `users` | OTP providers, tokens, profile, devices, deletion request |
-| `vehicles`, `hosts`, `documents`, `storage` | catalog + vehicles, host onboarding/KYC submission, signed uploads with magic-byte checks |
-| `chargers` | host CRUD, availability, PostGIS search, public detail, mappers |
-| `booking-core`, `bookings` | transitions/holds, quote/create/approve/cancel/check-in/no-show/access/receipt |
-| `payments` | provider registry (Razorpay/DEMO), orders, checkout page, verification, webhooks, refunds |
-| `sessions` | both-party confirmation, readings, evidence, completion, kWh settlement |
-| `ledger` | host ledger, earnings summary, payouts |
-| `reviews`, `favorites`, `support` | reviews, favourites, tickets, incidents (auto-suspend), disputes |
-| `admin` | verification queues, moderation, finance, disputes, settings, audit, exports, geo |
-| `jobs` | BullMQ schedulers and push delivery |
+| Module                                      | Responsibility                                                                                 |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `common/`                                   | env validation, Prisma, JWT guard + `@Roles`, errors/filter, audit, idempotency, crypto, Redis |
+| `auth`, `users`                             | OTP providers, tokens, profile, devices, deletion request                                      |
+| `vehicles`, `hosts`, `documents`, `storage` | catalog + vehicles, host onboarding/KYC submission, signed uploads with magic-byte checks      |
+| `chargers`                                  | host CRUD, availability, PostGIS search, public detail, mappers                                |
+| `booking-core`, `bookings`                  | transitions/holds, quote/create/approve/cancel/check-in/no-show/access/receipt                 |
+| `payments`                                  | provider registry (Razorpay/DEMO), orders, checkout page, verification, webhooks, refunds      |
+| `sessions`                                  | both-party confirmation, readings, evidence, completion, kWh settlement                        |
+| `ledger`                                    | host ledger, earnings summary, payouts                                                         |
+| `reviews`, `favorites`, `support`           | reviews, favourites, tickets, incidents (auto-suspend), disputes                               |
+| `admin`                                     | verification queues, moderation, finance, disputes, settings, audit, exports, geo              |
+| `jobs`                                      | BullMQ schedulers and push delivery                                                            |

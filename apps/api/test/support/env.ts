@@ -1,5 +1,7 @@
 /** Test environment. Uses a dedicated database so dev data is never touched. Values are test-only. */
-const base = process.env.TEST_DATABASE_URL ?? 'postgresql://nexvolt:nexvolt_local_only@localhost:55432/nexvolt_test?schema=public';
+const base =
+  process.env.TEST_DATABASE_URL ??
+  'postgresql://nexvolt:nexvolt_local_only@localhost:55432/nexvolt_test?schema=public';
 Object.assign(process.env, {
   NODE_ENV: 'test',
   DATABASE_URL: base,

@@ -1,7 +1,12 @@
 import { Logger } from '@nestjs/common';
 import { hmacSha256Hex, safeEqual } from '../../../common/crypto/crypto.service';
 import { AppError } from '../../../common/errors/app-error';
-import type { CreateOrderInput, PaymentProvider, ProviderPayment, ProviderRefund } from './payment-provider';
+import type {
+  CreateOrderInput,
+  PaymentProvider,
+  ProviderPayment,
+  ProviderRefund,
+} from './payment-provider';
 
 interface RzpPayment {
   id: string;
@@ -43,7 +48,13 @@ export function mapRzpPayment(p: RzpPayment): ProviderPayment {
 
 export function mapRzpRefund(r: RzpRefund): ProviderRefund {
   const notes = Array.isArray(r.notes) ? {} : (r.notes ?? {});
-  return { id: r.id, paymentId: r.payment_id, amountMinor: r.amount, status: r.status, internalRefundId: notes.nexvolt_refund_id ?? null };
+  return {
+    id: r.id,
+    paymentId: r.payment_id,
+    amountMinor: r.amount,
+    status: r.status,
+    internalRefundId: notes.nexvolt_refund_id ?? null,
+  };
 }
 
 /**
@@ -77,11 +88,18 @@ export class RazorpayProvider implements PaymentProvider {
       body: body ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(15_000),
     });
-    const json = (await res.json().catch(() => ({}))) as T & { error?: { code?: string; description?: string } };
+    const json = (await res.json().catch(() => ({}))) as T & {
+      error?: { code?: string; description?: string };
+    };
     if (!res.ok) {
       // Never log request bodies or keys.
-      this.logger.warn(`Razorpay ${method} ${path.split('/').slice(0, 2).join('/')} → HTTP ${res.status} ${json.error?.code ?? ''}`);
-      throw AppError.unavailable('PAYMENT_PROVIDER_ERROR', json.error?.description ?? 'Payment provider request failed');
+      this.logger.warn(
+        `Razorpay ${method} ${path.split('/').slice(0, 2).join('/')} → HTTP ${res.status} ${json.error?.code ?? ''}`,
+      );
+      throw AppError.unavailable(
+        'PAYMENT_PROVIDER_ERROR',
+        json.error?.description ?? 'Payment provider request failed',
+      );
     }
     return json;
   }
@@ -105,16 +123,26 @@ export class RazorpayProvider implements PaymentProvider {
   }
 
   async fetchPayment(paymentId: string) {
-    return mapRzpPayment(await this.call<RzpPayment>('GET', `/payments/${encodeURIComponent(paymentId)}`));
+    return mapRzpPayment(
+      await this.call<RzpPayment>('GET', `/payments/${encodeURIComponent(paymentId)}`),
+    );
   }
 
   async fetchOrderPayments(orderId: string) {
-    const r = await this.call<{ items: RzpPayment[] }>('GET', `/orders/${encodeURIComponent(orderId)}/payments`);
+    const r = await this.call<{ items: RzpPayment[] }>(
+      'GET',
+      `/orders/${encodeURIComponent(orderId)}/payments`,
+    );
     return r.items.map(mapRzpPayment);
   }
 
   async capture(paymentId: string, amountMinor: number, currency: string) {
-    return mapRzpPayment(await this.call<RzpPayment>('POST', `/payments/${encodeURIComponent(paymentId)}/capture`, { amount: amountMinor, currency }));
+    return mapRzpPayment(
+      await this.call<RzpPayment>('POST', `/payments/${encodeURIComponent(paymentId)}/capture`, {
+        amount: amountMinor,
+        currency,
+      }),
+    );
   }
 
   async refund(paymentId: string, amountMinor: number, internalRefundId: string) {
@@ -129,7 +157,10 @@ export class RazorpayProvider implements PaymentProvider {
   }
 
   async fetchRefunds(paymentId: string) {
-    const r = await this.call<{ items: RzpRefund[] }>('GET', `/payments/${encodeURIComponent(paymentId)}/refunds`);
+    const r = await this.call<{ items: RzpRefund[] }>(
+      'GET',
+      `/payments/${encodeURIComponent(paymentId)}/refunds`,
+    );
     return r.items.map(mapRzpRefund);
   }
 }

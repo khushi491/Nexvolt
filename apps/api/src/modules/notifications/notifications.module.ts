@@ -7,7 +7,10 @@ import { FcmPushProvider, PUSH_PROVIDER } from './push.provider';
 @Global()
 @Module({
   controllers: [NotificationsController],
-  providers: [NotificationsService, { provide: PUSH_PROVIDER, inject: [ENV], useFactory: (env: Env) => new FcmPushProvider(env) }],
+  providers: [
+    NotificationsService,
+    { provide: PUSH_PROVIDER, inject: [ENV], useFactory: (env: Env) => new FcmPushProvider(env) },
+  ],
   exports: [NotificationsService, PUSH_PROVIDER],
 })
 export class NotificationsModule {}

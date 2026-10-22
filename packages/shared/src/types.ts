@@ -273,7 +273,10 @@ export interface ChargerVerificationDto {
 }
 
 /** Host/admin view with private fields. */
-export interface ChargerManageDto extends Omit<ChargerPublicDto, 'host' | 'isFavorite' | 'compatibility'> {
+export interface ChargerManageDto extends Omit<
+  ChargerPublicDto,
+  'host' | 'isFavorite' | 'compatibility'
+> {
   hostId: string;
   status: ChargerStatus;
   isPublished: boolean;

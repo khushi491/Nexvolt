@@ -77,11 +77,16 @@ export class UsersService {
     if (input.name !== undefined) data.name = input.name;
     if (input.email !== undefined) data.email = input.email;
     if (input.notificationPrefs) {
-      data.notificationPrefs = { ...notificationPrefs(current.notificationPrefs), ...input.notificationPrefs };
+      data.notificationPrefs = {
+        ...notificationPrefs(current.notificationPrefs),
+        ...input.notificationPrefs,
+      };
     }
     const profile: Prisma.DriverProfileUpdateInput = {};
-    if (input.emergencyContactName !== undefined) profile.emergencyContactName = input.emergencyContactName;
-    if (input.emergencyContactPhone !== undefined) profile.emergencyContactPhone = this.crypto.encrypt(input.emergencyContactPhone);
+    if (input.emergencyContactName !== undefined)
+      profile.emergencyContactName = input.emergencyContactName;
+    if (input.emergencyContactPhone !== undefined)
+      profile.emergencyContactPhone = this.crypto.encrypt(input.emergencyContactPhone);
     await this.prisma.$transaction([
       this.prisma.user.update({ where: { id: userId }, data }),
       this.prisma.driverProfile.upsert({
@@ -114,7 +119,10 @@ export class UsersService {
    * payments and tax records may have legal retention requirements.
    */
   async requestDeletion(userId: string): Promise<{ requestedAt: string; note: string }> {
-    const u = await this.prisma.user.update({ where: { id: userId }, data: { deletionRequestedAt: new Date() } });
+    const u = await this.prisma.user.update({
+      where: { id: userId },
+      data: { deletionRequestedAt: new Date() },
+    });
     return {
       requestedAt: u.deletionRequestedAt!.toISOString(),
       note: 'Your request has been recorded. Our team will contact you; some transaction records may be retained where required by law.',

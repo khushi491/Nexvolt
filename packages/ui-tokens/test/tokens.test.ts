@@ -10,7 +10,9 @@ describe('accessible colour pairs (WCAG 2.1 AA, normal text)', () => {
     ['link on card', colors.text.link, colors.surface.card],
     ['white on primary button', colors.text.inverse, colors.brand.primary],
     ['white on navy', colors.text.inverse, colors.surface.navy],
-    ...(Object.entries(colors.status).map(([k, v]) => [`${k} badge`, v.fg, v.bg]) as Array<[string, string, string]>),
+    ...(Object.entries(colors.status).map(([k, v]) => [`${k} badge`, v.fg, v.bg]) as Array<
+      [string, string, string]
+    >),
     ['demo banner', colors.demo.fg, colors.demo.bg],
   ];
   it.each(pairs)('%s ≥ 4.5:1', (_n, fg, bg) => {

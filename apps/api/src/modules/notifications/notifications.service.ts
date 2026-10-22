@@ -68,7 +68,13 @@ export class NotificationsService {
     for (const n of Array.isArray(items) ? items : [items]) {
       try {
         const row = await this.prisma.notification.create({
-          data: { userId: n.userId, type: n.type, title: n.title, body: n.body, data: (n.data ?? undefined) as Prisma.InputJsonValue | undefined },
+          data: {
+            userId: n.userId,
+            type: n.type,
+            title: n.title,
+            body: n.body,
+            data: (n.data ?? undefined) as Prisma.InputJsonValue | undefined,
+          },
         });
         await this.maybePush(row.id, n);
       } catch (e) {
@@ -78,19 +84,33 @@ export class NotificationsService {
   }
 
   private async maybePush(notificationId: string, n: NotifyInput): Promise<void> {
-    const user = await this.prisma.user.findUnique({ where: { id: n.userId }, select: { notificationPrefs: true } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: n.userId },
+      select: { notificationPrefs: true },
+    });
     const prefs = notificationPrefs(user?.notificationPrefs);
     const cat = CATEGORY[n.type];
     const allowed = cat === 'always' || (prefs.push && prefs[cat]);
     if (!allowed) {
-      await this.prisma.notification.update({ where: { id: notificationId }, data: { pushStatus: 'opted_out' } });
+      await this.prisma.notification.update({
+        where: { id: notificationId },
+        data: { pushStatus: 'opted_out' },
+      });
       return;
     }
     if (!this.push.enabled) {
-      await this.prisma.notification.update({ where: { id: notificationId }, data: { pushStatus: 'push_not_configured' } });
+      await this.prisma.notification.update({
+        where: { id: notificationId },
+        data: { pushStatus: 'push_not_configured' },
+      });
       return;
     }
-    if (this.queue) await this.queue.add('push', { notificationId }, { attempts: 3, backoff: { type: 'exponential', delay: 5000 } });
+    if (this.queue)
+      await this.queue.add(
+        'push',
+        { notificationId },
+        { attempts: 3, backoff: { type: 'exponential', delay: 5000 } },
+      );
     else await this.deliver(notificationId);
   }
 
@@ -101,8 +121,14 @@ export class NotificationsService {
     const tokens = await this.prisma.deviceToken.findMany({ where: { userId: n.userId } });
     let status = tokens.length ? 'failed' : 'no_devices';
     for (const t of tokens) {
-      const r = await this.push.send({ token: t.token, title: n.title, body: n.body, data: { notificationId: n.id, type: n.type, ...((n.data as Record<string, string>) ?? {}) } });
-      if (r === 'invalid_token') await this.prisma.deviceToken.delete({ where: { id: t.id } }).catch(() => undefined);
+      const r = await this.push.send({
+        token: t.token,
+        title: n.title,
+        body: n.body,
+        data: { notificationId: n.id, type: n.type, ...((n.data as Record<string, string>) ?? {}) },
+      });
+      if (r === 'invalid_token')
+        await this.prisma.deviceToken.delete({ where: { id: t.id } }).catch(() => undefined);
       if (r === 'sent') status = 'sent';
     }
     await this.prisma.notification.update({ where: { id: n.id }, data: { pushStatus: status } });
@@ -110,18 +136,28 @@ export class NotificationsService {
 
   async list(userId: string, limit = 50) {
     const [items, unread] = await Promise.all([
-      this.prisma.notification.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: Math.min(limit, 100) }),
+      this.prisma.notification.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: Math.min(limit, 100),
+      }),
       this.prisma.notification.count({ where: { userId, readAt: null } }),
     ]);
     return { items: items.map(toNotificationDto), unread };
   }
 
   async markRead(userId: string, id: string): Promise<void> {
-    const r = await this.prisma.notification.updateMany({ where: { id, userId }, data: { readAt: new Date() } });
+    const r = await this.prisma.notification.updateMany({
+      where: { id, userId },
+      data: { readAt: new Date() },
+    });
     if (r.count === 0) throw AppError.notFound('Notification');
   }
 
   async markAllRead(userId: string): Promise<void> {
-    await this.prisma.notification.updateMany({ where: { userId, readAt: null }, data: { readAt: new Date() } });
+    await this.prisma.notification.updateMany({
+      where: { userId, readAt: null },
+      data: { readAt: new Date() },
+    });
   }
 }

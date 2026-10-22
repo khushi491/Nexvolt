@@ -17,12 +17,33 @@ export default function EditProfile() {
   return (
     <Screen edges={[]}>
       <Stack.Screen options={{ title: 'Personal details' }} />
-      <Field label="Full name" value={name} onChangeText={setName} autoComplete="name" textContentType="name" />
-      <Field label="Email (optional)" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
+      <Field
+        label="Full name"
+        value={name}
+        onChangeText={setName}
+        autoComplete="name"
+        textContentType="name"
+      />
+      <Field
+        label="Email (optional)"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoComplete="email"
+      />
       <T.H3>Emergency contact (optional)</T.H3>
-      <T.Small>Shared with Nexvolt support only if there’s a safety incident during a booking.</T.Small>
+      <T.Small>
+        Shared with Nexvolt support only if there’s a safety incident during a booking.
+      </T.Small>
       <Field label="Contact name" value={ecName} onChangeText={setEcName} />
-      <Field label="Contact mobile" value={ecPhone} onChangeText={setEcPhone} keyboardType="phone-pad" error={err} />
+      <Field
+        label="Contact mobile"
+        value={ecPhone}
+        onChangeText={setEcPhone}
+        keyboardType="phone-pad"
+        error={err}
+      />
       <Button
         title="Save"
         loading={busy}
@@ -32,7 +53,12 @@ export default function EditProfile() {
           if (ecPhone && !phone) return setErr('Enter a valid Indian mobile number');
           setBusy(true);
           try {
-            await api.users.update({ name: name.trim() || undefined, email: email.trim() || null, emergencyContactName: ecName.trim() || null, emergencyContactPhone: phone });
+            await api.users.update({
+              name: name.trim() || undefined,
+              email: email.trim() || null,
+              emergencyContactName: ecName.trim() || null,
+              emergencyContactPhone: phone,
+            });
             await reload();
             router.back();
           } catch (e) {

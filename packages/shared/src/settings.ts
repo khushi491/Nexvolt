@@ -94,11 +94,14 @@ export type SettingKey = keyof PlatformSettings;
 export const SETTING_KEYS = Object.keys(DEFAULT_SETTINGS) as SettingKey[];
 
 export const SETTING_DESCRIPTIONS: Record<SettingKey, string> = {
-  commissionBps: 'Platform commission on the host charging fee (basis points). Demo default 1000 = 10%.',
+  commissionBps:
+    'Platform commission on the host charging fee (basis points). Demo default 1000 = 10%.',
   driverServiceFeeBps: 'Driver-side service fee (bps). Shown as a separate line item.',
   serviceFeeTaxBps: 'Tax on the driver service fee (bps). Configure only after tax review.',
-  gatewayFeeBearer: 'Whether gateway fees are deducted from host earnings or absorbed by the platform.',
-  kwhPricingEnabled: 'Allow per-kWh pricing for chargers with an accepted meter calibration certificate.',
+  gatewayFeeBearer:
+    'Whether gateway fees are deducted from host earnings or absorbed by the platform.',
+  kwhPricingEnabled:
+    'Allow per-kWh pricing for chargers with an accepted meter calibration certificate.',
   minHourlyPriceMinor: 'Minimum hourly price (paise).',
   maxHourlyPriceMinor: 'Maximum hourly price (paise).',
   minKwhPriceMinor: 'Minimum per-kWh price (paise).',
@@ -106,18 +109,21 @@ export const SETTING_DESCRIPTIONS: Record<SettingKey, string> = {
   holdMinutes: 'How long a slot is held while the driver reviews checkout.',
   paymentWindowMinutes: 'How long a slot stays reserved after a payment order is created.',
   hostApprovalWindowMinutes: 'How long a host has to approve a manual-approval request.',
-  accessRevealMinutesBefore: 'Minutes before start when the exact address becomes visible to the driver.',
+  accessRevealMinutesBefore:
+    'Minutes before start when the exact address becomes visible to the driver.',
   noShowGraceMinutes: 'Grace period after start before a host may mark no-show.',
   disputeWindowHours: 'Hours after completion before earnings become payout-eligible.',
   meterToleranceWh: 'Absolute tolerance (Wh) between driver and host meter readings.',
   meterToleranceBps: 'Relative tolerance (bps of energy) between driver and host readings.',
-  meterPlausibilityHeadroomBps: 'Headroom above max power × duration before energy is flagged implausible.',
+  meterPlausibilityHeadroomBps:
+    'Headroom above max power × duration before energy is flagged implausible.',
   estimateLoadFactorBps: 'Load factor for kWh estimates only.',
   minLeadTimeMinutes: 'Minimum minutes between booking creation and slot start.',
   maxAdvanceBookingDays: 'How far ahead drivers can book.',
   slotStepMinutes: 'Booking start/end granularity in minutes.',
   cancellationTiers: 'Refund tiers by cancellation policy.',
-  autoSuspendOnCriticalIncident: 'Automatically suspend a charger when a CRITICAL incident is reported.',
+  autoSuspendOnCriticalIncident:
+    'Automatically suspend a charger when a CRITICAL incident is reported.',
 };
 
 export const CANCELLATION_POLICY_COPY: Record<CancellationPolicy, string> = {

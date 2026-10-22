@@ -10,7 +10,15 @@ import { colors } from '@/lib/theme';
 
 export default function RootLayout() {
   const [client] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { staleTime: 15_000, retry: (n, e) => !(e instanceof ApiError && e.status < 500) && n < 2 } } }),
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 15_000,
+            retry: (n, e) => !(e instanceof ApiError && e.status < 500) && n < 2,
+          },
+        },
+      }),
   );
   return (
     <SafeAreaProvider>
@@ -18,7 +26,15 @@ export default function RootLayout() {
         <QueryClientProvider client={client}>
           <SessionProvider>
             <StatusBar style="dark" />
-            <Stack screenOptions={{ headerTintColor: colors.text.primary, headerStyle: { backgroundColor: colors.surface.background }, headerShadowVisible: false, contentStyle: { backgroundColor: colors.surface.background }, headerBackButtonDisplayMode: 'minimal' }}>
+            <Stack
+              screenOptions={{
+                headerTintColor: colors.text.primary,
+                headerStyle: { backgroundColor: colors.surface.background },
+                headerShadowVisible: false,
+                contentStyle: { backgroundColor: colors.surface.background },
+                headerBackButtonDisplayMode: 'minimal',
+              }}
+            >
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="onboarding" options={{ headerShown: false }} />
               <Stack.Screen name="login" options={{ headerShown: false }} />

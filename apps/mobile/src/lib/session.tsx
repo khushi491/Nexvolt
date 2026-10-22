@@ -25,7 +25,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     });
   }, []);
   const reload = useCallback(async () => setUser(await api.users.me()), []);
-  return <SessionCtx.Provider value={{ user, status, reload, signOut }}>{children}</SessionCtx.Provider>;
+  return (
+    <SessionCtx.Provider value={{ user, status, reload, signOut }}>{children}</SessionCtx.Provider>
+  );
 }
 
 export function useSession(): Ctx {

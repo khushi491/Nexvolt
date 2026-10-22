@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { DEFAULT_SETTINGS, SETTING_DESCRIPTIONS, SETTING_KEYS, type PlatformSettings, type SettingKey } from '@nexvolt/shared';
+import {
+  DEFAULT_SETTINGS,
+  SETTING_DESCRIPTIONS,
+  SETTING_KEYS,
+  type PlatformSettings,
+  type SettingKey,
+} from '@nexvolt/shared';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import type { AuthUser } from '../../common/auth/auth-user';
@@ -10,7 +16,11 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 
 const bps = z.number().int().min(0).max(10_000);
 const minor = z.number().int().min(0).max(100_000_000);
-const minutes = z.number().int().min(0).max(60 * 24 * 7);
+const minutes = z
+  .number()
+  .int()
+  .min(0)
+  .max(60 * 24 * 7);
 const tiers = z
   .array(z.object({ minMinutesBeforeStart: z.number().int().min(0), refundBps: bps }))
   .max(5);
@@ -31,7 +41,11 @@ const VALIDATORS: Record<SettingKey, z.ZodTypeAny> = {
   hostApprovalWindowMinutes: minutes.min(15).max(24 * 60),
   accessRevealMinutesBefore: minutes.max(48 * 60),
   noShowGraceMinutes: minutes.min(5).max(180),
-  disputeWindowHours: z.number().int().min(1).max(24 * 14),
+  disputeWindowHours: z
+    .number()
+    .int()
+    .min(1)
+    .max(24 * 14),
   meterToleranceWh: z.number().int().min(0).max(5000),
   meterToleranceBps: bps.max(2000),
   meterPlausibilityHeadroomBps: bps.max(5000),
@@ -90,21 +104,41 @@ export class SettingsService {
     const k = key as SettingKey;
     const parsed = VALIDATORS[k].safeParse(value);
     if (!parsed.success) {
-      throw AppError.unprocessable('INVALID_SETTING', parsed.error.issues[0]?.message ?? 'Invalid value');
+      throw AppError.unprocessable(
+        'INVALID_SETTING',
+        parsed.error.issues[0]?.message ?? 'Invalid value',
+      );
     }
     const before = (await this.get())[k];
     const next = { ...(await this.get()), [k]: parsed.data } as PlatformSettings;
-    if (next.minHourlyPriceMinor > next.maxHourlyPriceMinor || next.minKwhPriceMinor > next.maxKwhPriceMinor) {
+    if (
+      next.minHourlyPriceMinor > next.maxHourlyPriceMinor ||
+      next.minKwhPriceMinor > next.maxKwhPriceMinor
+    ) {
       throw AppError.unprocessable('INVALID_SETTING', 'Minimum price cannot exceed maximum price');
     }
     await this.prisma.$transaction(async (tx) => {
       await tx.platformSetting.upsert({
         where: { key },
-        create: { key, value: parsed.data as Prisma.InputJsonValue, description: SETTING_DESCRIPTIONS[k], updatedById: actor.id },
+        create: {
+          key,
+          value: parsed.data as Prisma.InputJsonValue,
+          description: SETTING_DESCRIPTIONS[k],
+          updatedById: actor.id,
+        },
         update: { value: parsed.data as Prisma.InputJsonValue, updatedById: actor.id },
       });
       await this.audit.log(
-        { actor, action: 'setting.update', resourceType: 'PlatformSetting', resourceId: key, reason, oldValue: before, newValue: parsed.data, meta },
+        {
+          actor,
+          action: 'setting.update',
+          resourceType: 'PlatformSetting',
+          resourceId: key,
+          reason,
+          oldValue: before,
+          newValue: parsed.data,
+          meta,
+        },
         tx,
       );
     });

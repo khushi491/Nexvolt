@@ -80,12 +80,16 @@ export function openRangesForDate(
 ): Array<[number, number]> {
   const todays = exceptions.filter((e) => e.date === localDate);
   if (todays.some((e) => e.type === 'BLACKOUT')) return [];
-  const custom = todays.filter((e) => e.type === 'CUSTOM_HOURS' && e.startMinute != null && e.endMinute != null);
+  const custom = todays.filter(
+    (e) => e.type === 'CUSTOM_HOURS' && e.startMinute != null && e.endMinute != null,
+  );
   if (custom.length > 0) {
     return mergeMinuteRanges(custom.map((e) => [e.startMinute as number, e.endMinute as number]));
   }
   const dow = dayOfWeekForLocalDate(localDate);
-  return mergeMinuteRanges(rules.filter((r) => r.dayOfWeek === dow).map((r) => [r.startMinute, r.endMinute]));
+  return mergeMinuteRanges(
+    rules.filter((r) => r.dayOfWeek === dow).map((r) => [r.startMinute, r.endMinute]),
+  );
 }
 
 /** Absolute open intervals covering [from, to], merged across midnight boundaries. */
@@ -133,12 +137,14 @@ export function validateSlot(args: {
   const { start, end, now, constraints: c } = args;
   if (!(end.getTime() > start.getTime())) return { ok: false, reason: 'INVALID_RANGE' };
   const stepMs = c.slotStepMinutes * 60_000;
-  if (start.getTime() % stepMs !== 0 || end.getTime() % stepMs !== 0) return { ok: false, reason: 'MISALIGNED' };
+  if (start.getTime() % stepMs !== 0 || end.getTime() % stepMs !== 0)
+    return { ok: false, reason: 'MISALIGNED' };
   const duration = diffMinutes(end, start);
   if (duration < c.minDurationMinutes) return { ok: false, reason: 'TOO_SHORT' };
   if (duration > c.maxDurationMinutes) return { ok: false, reason: 'TOO_LONG' };
   if (diffMinutes(start, now) < c.minLeadTimeMinutes) return { ok: false, reason: 'TOO_SOON' };
-  if (diffMinutes(start, now) > c.maxAdvanceBookingDays * 1440) return { ok: false, reason: 'TOO_FAR_AHEAD' };
+  if (diffMinutes(start, now) > c.maxAdvanceBookingDays * 1440)
+    return { ok: false, reason: 'TOO_FAR_AHEAD' };
   const open = openIntervalsBetween(start, end, args.rules, args.exceptions);
   const covered = open.some((iv) => iv.start <= start && iv.end >= end);
   if (!covered) return { ok: false, reason: 'OUTSIDE_AVAILABILITY' };
@@ -167,7 +173,11 @@ export function availableSlots(args: {
   const { localDate, durationMinutes, constraints: c } = args;
   const out: SlotOption[] = [];
   for (const [s, e] of openRangesForDate(localDate, args.rules, args.exceptions)) {
-    for (let m = Math.ceil(s / c.slotStepMinutes) * c.slotStepMinutes; m < e; m += c.slotStepMinutes) {
+    for (
+      let m = Math.ceil(s / c.slotStepMinutes) * c.slotStepMinutes;
+      m < e;
+      m += c.slotStepMinutes
+    ) {
       const start = istToUtc(localDate, m);
       const end = addMinutes(start, durationMinutes);
       const res = validateSlot({ ...args, start, end });

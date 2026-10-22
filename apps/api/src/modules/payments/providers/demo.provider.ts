@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { AppError } from '../../../common/errors/app-error';
-import type { CreateOrderInput, PaymentProvider, ProviderPayment, ProviderRefund } from './payment-provider';
+import type {
+  CreateOrderInput,
+  PaymentProvider,
+  ProviderPayment,
+  ProviderRefund,
+} from './payment-provider';
 
 /**
  * LOCAL_DEMO_MODE ONLY. Simulates a gateway so the full flow can be exercised without
@@ -52,8 +57,18 @@ export class DemoPaymentProvider implements PaymentProvider {
     throw AppError.unprocessable('DEMO_PROVIDER', 'Demo payments are captured at simulation time');
   }
 
-  async refund(paymentId: string, amountMinor: number, internalRefundId: string): Promise<ProviderRefund> {
-    return { id: `demo_rfnd_${randomUUID().replace(/-/g, '').slice(0, 20)}`, paymentId, amountMinor, status: 'processed', internalRefundId };
+  async refund(
+    paymentId: string,
+    amountMinor: number,
+    internalRefundId: string,
+  ): Promise<ProviderRefund> {
+    return {
+      id: `demo_rfnd_${randomUUID().replace(/-/g, '').slice(0, 20)}`,
+      paymentId,
+      amountMinor,
+      status: 'processed',
+      internalRefundId,
+    };
   }
 
   async fetchRefunds(): Promise<ProviderRefund[]> {

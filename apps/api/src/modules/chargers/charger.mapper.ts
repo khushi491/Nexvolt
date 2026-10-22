@@ -52,7 +52,9 @@ export const MANAGE_INCLUDE = {
 const avg = (sum: number, count: number) => (count ? Math.round((sum / count) * 10) / 10 : null);
 
 export function isVerifiedMeter(c: Pick<Charger, 'meterType' | 'meterVerifiedAt'>): boolean {
-  return (c.meterType === 'SEPARATE_SUBMETER' || c.meterType === 'SMART_OCPP') && !!c.meterVerifiedAt;
+  return (
+    (c.meterType === 'SEPARATE_SUBMETER' || c.meterType === 'SMART_OCPP') && !!c.meterVerifiedAt
+  );
 }
 
 export function dateOnly(d: Date): string {
@@ -84,7 +86,10 @@ export class ChargerMapper {
       description: c.description,
       currentType: c.currentType,
       maxPowerKw: Number(c.maxPowerKw),
-      connectors: c.connectors.map((k) => ({ connectorType: k.connectorType as ConnectorType, powerKw: Number(k.powerKw) })),
+      connectors: c.connectors.map((k) => ({
+        connectorType: k.connectorType as ConnectorType,
+        powerKw: Number(k.powerKw),
+      })),
       chargerMake: c.chargerMake,
       chargerModel: c.chargerModel,
       meterType: c.meterType,
@@ -159,7 +164,12 @@ export class ChargerMapper {
       accessInstructions: this.crypto.decrypt(c.accessInstructions),
       address: this.privateAddress(c),
       exactLocation: await this.exactLocation(c.id),
-      rules: c.availabilityRules.map((r) => ({ id: r.id, dayOfWeek: r.dayOfWeek, startMinute: r.startMinute, endMinute: r.endMinute })),
+      rules: c.availabilityRules.map((r) => ({
+        id: r.id,
+        dayOfWeek: r.dayOfWeek,
+        startMinute: r.startMinute,
+        endMinute: r.endMinute,
+      })),
       exceptions: c.exceptions.map((e) => ({
         id: e.id,
         date: dateOnly(e.date),

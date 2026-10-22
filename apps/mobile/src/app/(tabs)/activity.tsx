@@ -10,13 +10,22 @@ import { colors, spacing } from '@/lib/theme';
 
 export default function Activity() {
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ['notifications'], queryFn: () => api.notifications.list(), refetchInterval: 30_000 });
-  const readAll = useMutation({ mutationFn: () => api.notifications.readAll(), onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }) });
+  const q = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => api.notifications.list(),
+    refetchInterval: 30_000,
+  });
+  const readAll = useMutation({
+    mutationFn: () => api.notifications.readAll(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
+  });
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface.background }} edges={['top']}>
       <Row style={{ justifyContent: 'space-between', padding: spacing[4] }}>
         <T.Title>Activity</T.Title>
-        {!!q.data?.unread && <Button title="Mark all read" variant="ghost" onPress={() => readAll.mutate()} />}
+        {!!q.data?.unread && (
+          <Button title="Mark all read" variant="ghost" onPress={() => readAll.mutate()} />
+        )}
       </Row>
       <FlatList
         data={q.data?.items ?? []}
@@ -29,13 +38,41 @@ export default function Activity() {
             accessibilityRole="button"
             accessibilityLabel={`${n.readAt ? '' : 'Unread. '}${n.title}. ${n.body}`}
             onPress={() => {
-              if (!n.readAt) void api.notifications.read(n.id).then(() => qc.invalidateQueries({ queryKey: ['notifications'] }));
-              if (n.data?.bookingId) router.push({ pathname: '/booking/[id]', params: { id: n.data.bookingId } });
+              if (!n.readAt)
+                void api.notifications
+                  .read(n.id)
+                  .then(() => qc.invalidateQueries({ queryKey: ['notifications'] }));
+              if (n.data?.bookingId)
+                router.push({ pathname: '/booking/[id]', params: { id: n.data.bookingId } });
             }}
-            style={{ flexDirection: 'row', gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border.default }}
+            style={{
+              flexDirection: 'row',
+              gap: 12,
+              paddingVertical: 14,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.border.default,
+            }}
           >
-            <View style={{ width: 8, height: 8, borderRadius: 4, marginTop: 8, backgroundColor: n.readAt ? 'transparent' : colors.brand.accent }} />
-            <Ionicons name={n.type === 'SAFETY_ALERT' ? 'warning' : n.type.startsWith('PAY') || n.type.startsWith('REFUND') ? 'card-outline' : 'flash-outline'} size={20} color={n.type === 'SAFETY_ALERT' ? colors.status.danger.fg : colors.brand.primary} />
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                marginTop: 8,
+                backgroundColor: n.readAt ? 'transparent' : colors.brand.accent,
+              }}
+            />
+            <Ionicons
+              name={
+                n.type === 'SAFETY_ALERT'
+                  ? 'warning'
+                  : n.type.startsWith('PAY') || n.type.startsWith('REFUND')
+                    ? 'card-outline'
+                    : 'flash-outline'
+              }
+              size={20}
+              color={n.type === 'SAFETY_ALERT' ? colors.status.danger.fg : colors.brand.primary}
+            />
             <View style={{ flex: 1, gap: 2 }}>
               <T.Body style={{ fontWeight: n.readAt ? '400' : '700' }}>{n.title}</T.Body>
               <T.Small>{n.body}</T.Small>
@@ -43,7 +80,19 @@ export default function Activity() {
             </View>
           </Pressable>
         )}
-        ListEmptyComponent={q.isLoading ? <SkeletonCards /> : q.isError ? <ErrorState error={q.error} /> : <EmptyState icon="notifications-outline" title="Nothing yet" body="Booking, payment and safety updates will appear here." />}
+        ListEmptyComponent={
+          q.isLoading ? (
+            <SkeletonCards />
+          ) : q.isError ? (
+            <ErrorState error={q.error} />
+          ) : (
+            <EmptyState
+              icon="notifications-outline"
+              title="Nothing yet"
+              body="Booking, payment and safety updates will appear here."
+            />
+          )
+        }
       />
     </SafeAreaView>
   );

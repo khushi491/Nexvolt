@@ -1,4 +1,16 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader, ApiTags } from '@nestjs/swagger';
 import {
   AdminRefundSchema,
@@ -28,7 +40,11 @@ import { SettingsService } from '../settings/settings.service';
 import { AdminFinanceService } from './admin-finance.service';
 import { AuditService } from '../../common/audit/audit.service';
 import { AppError } from '../../common/errors/app-error';
-import { MAINTENANCE_TASKS, MaintenanceService, type MaintenanceTask } from '../jobs/maintenance.service';
+import {
+  MAINTENANCE_TASKS,
+  MaintenanceService,
+  type MaintenanceTask,
+} from '../jobs/maintenance.service';
 import { AdminVerificationService } from './admin-verification.service';
 
 class PageDto extends createZodDto(PaginationSchema) {}
@@ -46,7 +62,9 @@ class ResolveDisputeDto extends createZodDto(ResolveDisputeSchema) {}
 class UpdateTicketDto extends createZodDto(UpdateTicketSchema) {}
 class UpdateIncidentDto extends createZodDto(UpdateIncidentSchema) {}
 class VehicleCatalogDto extends createZodDto(VehicleCatalogSchema) {}
-class PayoutAccountDto extends createZodDto(z.object({ status: z.enum(['ACTIVE', 'REJECTED']), reason: z.string().trim().min(5).max(1000) })) {}
+class PayoutAccountDto extends createZodDto(
+  z.object({ status: z.enum(['ACTIVE', 'REJECTED']), reason: z.string().trim().min(5).max(1000) }),
+) {}
 
 /**
  * Admin API. ADMIN has full access; SUPPORT can read operations data and work
@@ -70,10 +88,21 @@ export class AdminController {
   /** Run a maintenance task now (normally scheduled by BullMQ). */
   @Post('maintenance/:task')
   @HttpCode(200)
-  async runMaintenance(@Param('task') task: string, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  async runMaintenance(
+    @Param('task') task: string,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     if (!(MAINTENANCE_TASKS as readonly string[]).includes(task)) throw AppError.notFound('Task');
     const r = await this.maintenance.run(task as MaintenanceTask);
-    await this.audit.log({ actor: u, action: 'maintenance.run', resourceType: 'Maintenance', resourceId: task, newValue: r, meta: m });
+    await this.audit.log({
+      actor: u,
+      action: 'maintenance.run',
+      resourceType: 'Maintenance',
+      resourceId: task,
+      newValue: r,
+      meta: m,
+    });
     return r;
   }
 
@@ -104,25 +133,45 @@ export class AdminController {
 
   @Post('hosts/:id/kyc')
   @HttpCode(200)
-  kyc(@Param('id', ParseUUIDPipe) id: string, @Body() b: KycDecisionDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  kyc(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: KycDecisionDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.decideKyc(id, b.decision, b.reason, u, m);
   }
 
   @Post('hosts/:id/payout-account')
   @HttpCode(200)
-  payoutAccount(@Param('id', ParseUUIDPipe) id: string, @Body() b: PayoutAccountDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  payoutAccount(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: PayoutAccountDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.setPayoutAccount(id, b.status, b.reason, u, m);
   }
 
   @Post('hosts/:id/suspend')
   @HttpCode(200)
-  suspendHost(@Param('id', ParseUUIDPipe) id: string, @Body() b: SuspendDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  suspendHost(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: SuspendDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.setHostSuspended(id, true, b.reason, u, m);
   }
 
   @Post('hosts/:id/reinstate')
   @HttpCode(200)
-  reinstateHost(@Param('id', ParseUUIDPipe) id: string, @Body() b: SuspendDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  reinstateHost(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: SuspendDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.setHostSuspended(id, false, b.reason, u, m);
   }
 
@@ -134,7 +183,12 @@ export class AdminController {
 
   @Post('documents/:id/review')
   @HttpCode(200)
-  reviewDocument(@Param('id', ParseUUIDPipe) id: string, @Body() b: DocumentReviewDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  reviewDocument(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: DocumentReviewDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.reviewDocument(id, b.decision, b.notes, u, m);
   }
 
@@ -153,19 +207,34 @@ export class AdminController {
 
   @Post('chargers/:id/decision')
   @HttpCode(200)
-  decide(@Param('id', ParseUUIDPipe) id: string, @Body() b: ChargerDecisionDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  decide(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ChargerDecisionDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.decideCharger(id, b, u, m);
   }
 
   @Post('chargers/:id/suspend')
   @HttpCode(200)
-  suspendCharger(@Param('id', ParseUUIDPipe) id: string, @Body() b: SuspendDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  suspendCharger(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: SuspendDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.setChargerSuspended(id, true, b.reason, u, m);
   }
 
   @Post('chargers/:id/reinstate')
   @HttpCode(200)
-  reinstateCharger(@Param('id', ParseUUIDPipe) id: string, @Body() b: SuspendDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  reinstateCharger(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: SuspendDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.setChargerSuspended(id, false, b.reason, u, m);
   }
 
@@ -178,13 +247,23 @@ export class AdminController {
 
   @Post('users/:id/suspend')
   @HttpCode(200)
-  suspendUser(@Param('id', ParseUUIDPipe) id: string, @Body() b: SuspendDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  suspendUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: SuspendDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.setUserSuspended(id, true, b.reason, u, m);
   }
 
   @Post('users/:id/reinstate')
   @HttpCode(200)
-  reinstateUser(@Param('id', ParseUUIDPipe) id: string, @Body() b: SuspendDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  reinstateUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: SuspendDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.setUserSuspended(id, false, b.reason, u, m);
   }
 
@@ -204,7 +283,12 @@ export class AdminController {
   /** Cancels on the platform's behalf with a full refund (e.g. unsafe charger). */
   @Post('bookings/:id/cancel')
   @HttpCode(200)
-  cancelBooking(@Param('id', ParseUUIDPipe) id: string, @Body() b: SuspendDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  cancelBooking(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: SuspendDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.bookings.cancel(u, id, b.reason, m);
   }
 
@@ -236,13 +320,22 @@ export class AdminController {
   @Roles('ADMIN', 'SUPPORT')
   @Post('disputes/:id/review')
   @HttpCode(200)
-  reviewDispute(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  reviewDispute(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.finance.markDisputeUnderReview(id, u, m);
   }
 
   @Post('disputes/:id/resolve')
   @HttpCode(200)
-  resolveDispute(@Param('id', ParseUUIDPipe) id: string, @Body() b: ResolveDisputeDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  resolveDispute(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: ResolveDisputeDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.finance.resolveDispute(id, b, u, m);
   }
 
@@ -264,13 +357,23 @@ export class AdminController {
 
   @Post('payouts/:id/mark-paid')
   @HttpCode(200)
-  markPaid(@Param('id', ParseUUIDPipe) id: string, @Body() b: MarkPayoutPaidDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  markPaid(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: MarkPayoutPaidDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.ledger.markPayoutPaid(id, b.externalReference, b.reason, u, m);
   }
 
   @Post('payouts/:id/mark-failed')
   @HttpCode(200)
-  markFailed(@Param('id', ParseUUIDPipe) id: string, @Body() b: MarkPayoutFailedDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  markFailed(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: MarkPayoutFailedDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.ledger.markPayoutFailed(id, b.reason, u, m);
   }
 
@@ -283,7 +386,12 @@ export class AdminController {
 
   @Roles('ADMIN', 'SUPPORT')
   @Patch('support/tickets/:id')
-  updateTicket(@Param('id', ParseUUIDPipe) id: string, @Body() b: UpdateTicketDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  updateTicket(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: UpdateTicketDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.updateTicket(id, b, u, m);
   }
 
@@ -295,14 +403,24 @@ export class AdminController {
 
   @Roles('ADMIN', 'SUPPORT')
   @Patch('incidents/:id')
-  updateIncident(@Param('id', ParseUUIDPipe) id: string, @Body() b: UpdateIncidentDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  updateIncident(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: UpdateIncidentDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.updateIncident(id, b, u, m);
   }
 
   // ── Moderation & catalog ──
   @Post('reviews/:id/hide')
   @HttpCode(200)
-  hideReview(@Param('id', ParseUUIDPipe) id: string, @Body() b: SuspendDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  hideReview(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: SuspendDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.hideReview(id, b.reason, u, m);
   }
 
@@ -312,12 +430,21 @@ export class AdminController {
   }
 
   @Post('vehicle-models')
-  createVehicleModel(@Body() b: VehicleCatalogDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  createVehicleModel(
+    @Body() b: VehicleCatalogDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.upsertVehicleModel(null, b, u, m);
   }
 
   @Put('vehicle-models/:id')
-  updateVehicleModel(@Param('id', ParseUUIDPipe) id: string, @Body() b: VehicleCatalogDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  updateVehicleModel(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: VehicleCatalogDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.verify.upsertVehicleModel(id, b, u, m);
   }
 
@@ -328,7 +455,12 @@ export class AdminController {
   }
 
   @Put('settings/:key')
-  updateSetting(@Param('key') key: string, @Body() b: UpdateSettingDto, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta) {
+  updateSetting(
+    @Param('key') key: string,
+    @Body() b: UpdateSettingDto,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+  ) {
     return this.settings.update(key, b.value, b.reason, u, m);
   }
 
@@ -338,10 +470,18 @@ export class AdminController {
   }
 
   @Get('exports/:type')
-  async export(@Param('type') type: string, @CurrentUser() u: AuthUser, @ReqMeta() m: RequestMeta, @Res() res: Response) {
+  async export(
+    @Param('type') type: string,
+    @CurrentUser() u: AuthUser,
+    @ReqMeta() m: RequestMeta,
+    @Res() res: Response,
+  ) {
     const csv = await this.finance.export(type, u, m);
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="nexvolt-${type}-${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="nexvolt-${type}-${new Date().toISOString().slice(0, 10)}.csv"`,
+    );
     res.send(csv);
   }
 }

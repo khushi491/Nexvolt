@@ -6,7 +6,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "react-native": "src/index.ts",
-  "files": ["dist", "src", "tailwind-preset.js"],
+  "files": [
+    "dist",
+    "src",
+    "tailwind-preset.js"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",

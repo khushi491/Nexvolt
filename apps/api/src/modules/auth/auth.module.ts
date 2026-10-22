@@ -18,7 +18,11 @@ import { TwilioVerifyOtpProvider } from './otp/twilio-verify.provider';
       inject: [ENV],
       useFactory: (env: Env) =>
         env.OTP_PROVIDER === 'twilio_verify'
-          ? new TwilioVerifyOtpProvider(env.TWILIO_ACCOUNT_SID!, env.TWILIO_AUTH_TOKEN!, env.TWILIO_VERIFY_SERVICE_SID!)
+          ? new TwilioVerifyOtpProvider(
+              env.TWILIO_ACCOUNT_SID!,
+              env.TWILIO_AUTH_TOKEN!,
+              env.TWILIO_VERIFY_SERVICE_SID!,
+            )
           : new EmulatorOtpProvider(env.OTP_EMULATOR_FIXED_CODE),
     },
   ],

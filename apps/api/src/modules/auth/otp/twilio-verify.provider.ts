@@ -26,31 +26,43 @@ export class TwilioVerifyOtpProvider implements OtpProvider {
   }
 
   async send(phone: string): Promise<OtpSendResult> {
-    const res = await fetch(`https://verify.twilio.com/v2/Services/${this.serviceSid}/Verifications`, {
-      method: 'POST',
-      headers: this.headers(),
-      body: new URLSearchParams({ To: phone, Channel: 'sms' }),
-      signal: AbortSignal.timeout(10_000),
-    });
+    const res = await fetch(
+      `https://verify.twilio.com/v2/Services/${this.serviceSid}/Verifications`,
+      {
+        method: 'POST',
+        headers: this.headers(),
+        body: new URLSearchParams({ To: phone, Channel: 'sms' }),
+        signal: AbortSignal.timeout(10_000),
+      },
+    );
     if (!res.ok) {
       this.logger.error(`Twilio Verify send failed with HTTP ${res.status}`);
-      throw AppError.unavailable('OTP_DELIVERY_FAILED', 'We could not send a code right now. Please try again.');
+      throw AppError.unavailable(
+        'OTP_DELIVERY_FAILED',
+        'We could not send a code right now. Please try again.',
+      );
     }
     const body = (await res.json()) as { sid?: string };
     return { code: null, providerRef: body.sid ?? null, channel: 'sms' };
   }
 
   async check(phone: string, code: string): Promise<boolean> {
-    const res = await fetch(`https://verify.twilio.com/v2/Services/${this.serviceSid}/VerificationCheck`, {
-      method: 'POST',
-      headers: this.headers(),
-      body: new URLSearchParams({ To: phone, Code: code }),
-      signal: AbortSignal.timeout(10_000),
-    });
+    const res = await fetch(
+      `https://verify.twilio.com/v2/Services/${this.serviceSid}/VerificationCheck`,
+      {
+        method: 'POST',
+        headers: this.headers(),
+        body: new URLSearchParams({ To: phone, Code: code }),
+        signal: AbortSignal.timeout(10_000),
+      },
+    );
     if (res.status === 404) return false; // expired / already approved
     if (!res.ok) {
       this.logger.error(`Twilio Verify check failed with HTTP ${res.status}`);
-      throw AppError.unavailable('OTP_VERIFY_FAILED', 'We could not verify the code right now. Please try again.');
+      throw AppError.unavailable(
+        'OTP_VERIFY_FAILED',
+        'We could not verify the code right now. Please try again.',
+      );
     }
     const body = (await res.json()) as { status?: string };
     return body.status === 'approved';

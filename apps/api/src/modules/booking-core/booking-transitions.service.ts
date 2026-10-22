@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { assertTransition, InvalidTransitionError, type ActorType, type BookingStatus } from '@nexvolt/shared';
+import {
+  assertTransition,
+  InvalidTransitionError,
+  type ActorType,
+  type BookingStatus,
+} from '@nexvolt/shared';
 import { Prisma, type Booking, type HoldKind } from '@prisma/client';
 import { AppError } from '../../common/errors/app-error';
 import { PrismaService, type Tx } from '../../common/prisma/prisma.service';
@@ -33,12 +38,22 @@ export class BookingTransitionsService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async transition(tx: Tx, booking: Booking, to: BookingStatus, actor: Actor, opts: TransitionOptions = {}): Promise<Booking> {
+  async transition(
+    tx: Tx,
+    booking: Booking,
+    to: BookingStatus,
+    actor: Actor,
+    opts: TransitionOptions = {},
+  ): Promise<Booking> {
     try {
       assertTransition(booking.status, to, actor.type);
     } catch (e) {
       if (e instanceof InvalidTransitionError) {
-        throw AppError.conflict('INVALID_BOOKING_TRANSITION', `This booking is ${booking.status.toLowerCase().replace(/_/g, ' ')} and cannot be changed that way`, { from: booking.status, to });
+        throw AppError.conflict(
+          'INVALID_BOOKING_TRANSITION',
+          `This booking is ${booking.status.toLowerCase().replace(/_/g, ' ')} and cannot be changed that way`,
+          { from: booking.status, to },
+        );
       }
       throw e;
     }
@@ -54,7 +69,10 @@ export class BookingTransitionsService {
       },
     });
     if (res.count === 0) {
-      throw AppError.conflict('BOOKING_CHANGED', 'This booking was updated by another action. Refresh and try again.');
+      throw AppError.conflict(
+        'BOOKING_CHANGED',
+        'This booking was updated by another action. Refresh and try again.',
+      );
     }
     await tx.bookingStatusEvent.create({
       data: {
@@ -74,7 +92,9 @@ export class BookingTransitionsService {
       });
     }
     if (opts.hold) {
-      await tx.bookingHold.create({ data: { bookingId: booking.id, kind: opts.hold.kind, expiresAt: opts.hold.expiresAt } });
+      await tx.bookingHold.create({
+        data: { bookingId: booking.id, kind: opts.hold.kind, expiresAt: opts.hold.expiresAt },
+      });
     }
     return tx.booking.findUniqueOrThrow({ where: { id: booking.id } });
   }
@@ -91,9 +111,14 @@ export class BookingTransitionsService {
    * Expire holds whose window has passed. Called lazily before any capacity insert and
    * periodically by the maintenance job, so expiry is consistent everywhere.
    */
-  async expireStaleHolds(tx: Tx, chargerId?: string): Promise<Array<{ id: string; driverId: string; fromStatus: BookingStatus }>> {
+  async expireStaleHolds(
+    tx: Tx,
+    chargerId?: string,
+  ): Promise<Array<{ id: string; driverId: string; fromStatus: BookingStatus }>> {
     const filter = chargerId ? Prisma.sql`AND "chargerId" = ${chargerId}::uuid` : Prisma.empty;
-    const rows = await tx.$queryRaw<Array<{ id: string; driverId: string; fromStatus: BookingStatus }>>`
+    const rows = await tx.$queryRaw<
+      Array<{ id: string; driverId: string; fromStatus: BookingStatus }>
+    >`
       WITH stale AS (
         SELECT id, status FROM bookings
         WHERE status IN ('AWAITING_HOST_APPROVAL', 'HELD', 'PENDING_PAYMENT')
@@ -106,9 +131,18 @@ export class BookingTransitionsService {
       RETURNING b.id, b."driverId", stale.status::text AS "fromStatus"`;
     for (const r of rows) {
       await tx.bookingStatusEvent.create({
-        data: { bookingId: r.id, fromStatus: r.fromStatus, toStatus: 'EXPIRED', actorType: 'SYSTEM', reason: 'Hold expired' },
+        data: {
+          bookingId: r.id,
+          fromStatus: r.fromStatus,
+          toStatus: 'EXPIRED',
+          actorType: 'SYSTEM',
+          reason: 'Hold expired',
+        },
       });
-      await tx.bookingHold.updateMany({ where: { bookingId: r.id, releasedAt: null }, data: { releasedAt: new Date(), releaseReason: 'expired' } });
+      await tx.bookingHold.updateMany({
+        where: { bookingId: r.id, releasedAt: null },
+        data: { releasedAt: new Date(), releaseReason: 'expired' },
+      });
     }
     if (rows.length) this.logger.log(`Expired ${rows.length} stale hold(s)`);
     return rows;

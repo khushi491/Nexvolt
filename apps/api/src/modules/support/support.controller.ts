@@ -1,7 +1,12 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { CreateDisputeSchema, CreateIncidentSchema, CreateTicketSchema, TicketMessageSchema } from '@nexvolt/shared';
+import {
+  CreateDisputeSchema,
+  CreateIncidentSchema,
+  CreateTicketSchema,
+  TicketMessageSchema,
+} from '@nexvolt/shared';
 import { createZodDto } from 'nestjs-zod';
 import type { AuthUser } from '../../common/auth/auth-user';
 import { CurrentUser } from '../../common/auth/decorators';
@@ -35,7 +40,11 @@ export class SupportController {
   }
 
   @Post('tickets/:id/messages')
-  message(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() body: TicketMessageDto) {
+  message(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: TicketMessageDto,
+  ) {
     return this.support.addMessage(user, id, body.body, body.internal);
   }
 }

@@ -10,7 +10,13 @@ export const PHOTO_MIME = ['image/jpeg', 'image/png', 'image/webp'];
 export async function uploadDocument(file: File, docType: DocumentType, chargerId?: string) {
   if (!DOC_MIME.includes(file.type)) throw new Error('Upload a PDF, JPEG or PNG file');
   if (file.size > 10 * 1024 * 1024) throw new Error('Files must be 10 MB or smaller');
-  const { document, upload } = await api.documents.createUpload({ docType, chargerId, fileName: file.name, mimeType: file.type, sizeBytes: file.size });
+  const { document, upload } = await api.documents.createUpload({
+    docType,
+    chargerId,
+    fileName: file.name,
+    mimeType: file.type,
+    sizeBytes: file.size,
+  });
   await uploadToPresignedUrl(upload, file);
   return api.documents.complete(document.id);
 }

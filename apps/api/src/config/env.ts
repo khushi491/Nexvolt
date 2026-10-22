@@ -24,7 +24,10 @@ const EnvSchema = z
     /** AES-256-GCM key (base64, 32 bytes) for field-level encryption of private address data. */
     PII_ENCRYPTION_KEY: z
       .string()
-      .refine((v) => Buffer.from(v, 'base64').length === 32, 'PII_ENCRYPTION_KEY must be 32 bytes base64'),
+      .refine(
+        (v) => Buffer.from(v, 'base64').length === 32,
+        'PII_ENCRYPTION_KEY must be 32 bytes base64',
+      ),
 
     OTP_PROVIDER: z.enum(['emulator', 'twilio_verify']).default('emulator'),
     OTP_HMAC_SECRET: z.string().min(32),
@@ -60,35 +63,74 @@ const EnvSchema = z
     FCM_CLIENT_EMAIL: z.string().optional(),
     FCM_PRIVATE_KEY: z.string().optional(),
 
-    LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+    LOG_LEVEL: z
+      .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
+      .default('info'),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production') {
       if (env.LOCAL_DEMO_MODE) {
-        ctx.addIssue({ code: 'custom', path: ['LOCAL_DEMO_MODE'], message: 'Demo mode is forbidden in production' });
+        ctx.addIssue({
+          code: 'custom',
+          path: ['LOCAL_DEMO_MODE'],
+          message: 'Demo mode is forbidden in production',
+        });
       }
       if (env.OTP_PROVIDER === 'emulator') {
-        ctx.addIssue({ code: 'custom', path: ['OTP_PROVIDER'], message: 'OTP emulator is forbidden in production' });
+        ctx.addIssue({
+          code: 'custom',
+          path: ['OTP_PROVIDER'],
+          message: 'OTP emulator is forbidden in production',
+        });
       }
       if (env.OTP_REQUESTS_PER_15MIN_PER_IP > 50) {
-        ctx.addIssue({ code: 'custom', path: ['OTP_REQUESTS_PER_15MIN_PER_IP'], message: 'Relaxed OTP rate limits are not allowed in production' });
+        ctx.addIssue({
+          code: 'custom',
+          path: ['OTP_REQUESTS_PER_15MIN_PER_IP'],
+          message: 'Relaxed OTP rate limits are not allowed in production',
+        });
       }
       if (env.DISABLE_ROUTE_THROTTLING_FOR_TESTS) {
-        ctx.addIssue({ code: 'custom', path: ['DISABLE_ROUTE_THROTTLING_FOR_TESTS'], message: 'Route throttling cannot be disabled in production' });
+        ctx.addIssue({
+          code: 'custom',
+          path: ['DISABLE_ROUTE_THROTTLING_FOR_TESTS'],
+          message: 'Route throttling cannot be disabled in production',
+        });
       }
       if (env.OTP_EMULATOR_FIXED_CODE) {
-        ctx.addIssue({ code: 'custom', path: ['OTP_EMULATOR_FIXED_CODE'], message: 'Fixed OTP codes are forbidden in production' });
+        ctx.addIssue({
+          code: 'custom',
+          path: ['OTP_EMULATOR_FIXED_CODE'],
+          message: 'Fixed OTP codes are forbidden in production',
+        });
       }
     }
-    if (env.OTP_PROVIDER === 'twilio_verify' && !(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_VERIFY_SERVICE_SID)) {
-      ctx.addIssue({ code: 'custom', path: ['OTP_PROVIDER'], message: 'Twilio Verify credentials are required' });
+    if (
+      env.OTP_PROVIDER === 'twilio_verify' &&
+      !(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_VERIFY_SERVICE_SID)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['OTP_PROVIDER'],
+        message: 'Twilio Verify credentials are required',
+      });
     }
-    const rz = [env.RAZORPAY_KEY_ID, env.RAZORPAY_KEY_SECRET, env.RAZORPAY_WEBHOOK_SECRET].filter(Boolean).length;
+    const rz = [env.RAZORPAY_KEY_ID, env.RAZORPAY_KEY_SECRET, env.RAZORPAY_WEBHOOK_SECRET].filter(
+      Boolean,
+    ).length;
     if (rz > 0 && rz < 3) {
-      ctx.addIssue({ code: 'custom', path: ['RAZORPAY_KEY_ID'], message: 'Set all of RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET' });
+      ctx.addIssue({
+        code: 'custom',
+        path: ['RAZORPAY_KEY_ID'],
+        message: 'Set all of RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET',
+      });
     }
     if (env.NODE_ENV !== 'production' && env.RAZORPAY_KEY_ID?.startsWith('rzp_live_')) {
-      ctx.addIssue({ code: 'custom', path: ['RAZORPAY_KEY_ID'], message: 'Live Razorpay keys are only allowed with NODE_ENV=production' });
+      ctx.addIssue({
+        code: 'custom',
+        path: ['RAZORPAY_KEY_ID'],
+        message: 'Live Razorpay keys are only allowed with NODE_ENV=production',
+      });
     }
   });
 
@@ -99,7 +141,9 @@ let cached: Env | undefined;
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const parsed = EnvSchema.safeParse(source);
   if (!parsed.success) {
-    const issues = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
+    const issues = parsed.error.issues
+      .map((i) => `  - ${i.path.join('.')}: ${i.message}`)
+      .join('\n');
     // Do not print values: they may be secrets.
     throw new Error(`Invalid environment configuration:\n${issues}`);
   }

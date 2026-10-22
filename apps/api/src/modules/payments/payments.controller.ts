@@ -1,4 +1,17 @@
-import { Body, Controller, Get, Headers, HttpCode, Param, ParseUUIDPipe, Post, Query, Req, Res, type RawBodyRequest } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  Req,
+  Res,
+  type RawBodyRequest,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiExcludeEndpoint, ApiHeader, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { CreatePaymentOrderSchema, DemoPaymentSchema, VerifyPaymentSchema } from '@nexvolt/shared';
@@ -15,9 +28,16 @@ class CreatePaymentOrderDto extends createZodDto(CreatePaymentOrderSchema) {}
 class VerifyPaymentDto extends createZodDto(VerifyPaymentSchema) {}
 class DemoPaymentDto extends createZodDto(DemoPaymentSchema) {}
 class CheckoutVerifyDto extends createZodDto(
-  z.object({ token: z.string().min(20).max(2000), providerOrderId: z.string().min(3).max(100), providerPaymentId: z.string().min(3).max(100), signature: z.string().min(10).max(200) }),
+  z.object({
+    token: z.string().min(20).max(2000),
+    providerOrderId: z.string().min(3).max(100),
+    providerPaymentId: z.string().min(3).max(100),
+    signature: z.string().min(10).max(200),
+  }),
 ) {}
-class CheckoutDemoDto extends createZodDto(z.object({ token: z.string().min(20).max(2000), outcome: z.enum(['SUCCESS', 'FAILURE']) })) {}
+class CheckoutDemoDto extends createZodDto(
+  z.object({ token: z.string().min(20).max(2000), outcome: z.enum(['SUCCESS', 'FAILURE']) }),
+) {}
 
 @ApiTags('payments')
 @ApiBearerAuth()
@@ -28,7 +48,11 @@ export class PaymentsController {
   @Post('orders')
   @ApiHeader({ name: 'Idempotency-Key', required: true })
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  createOrder(@CurrentUser() user: AuthUser, @Body() body: CreatePaymentOrderDto, @ReqMeta() meta: RequestMeta) {
+  createOrder(
+    @CurrentUser() user: AuthUser,
+    @Body() body: CreatePaymentOrderDto,
+    @ReqMeta() meta: RequestMeta,
+  ) {
     return this.payments.createOrder(user, body.bookingId, meta.idempotencyKey);
   }
 
@@ -55,7 +79,11 @@ export class PaymentsController {
   @Public()
   @ApiExcludeEndpoint()
   @Get('checkout/:paymentId')
-  async checkoutPage(@Param('paymentId', ParseUUIDPipe) paymentId: string, @Query('t') token: string, @Res() res: Response) {
+  async checkoutPage(
+    @Param('paymentId', ParseUUIDPipe) paymentId: string,
+    @Query('t') token: string,
+    @Res() res: Response,
+  ) {
     const ctx = await this.payments.checkoutContext(paymentId, token ?? '');
     const nonce = randomBytes(16).toString('base64');
     res.setHeader(
@@ -64,7 +92,7 @@ export class PaymentsController {
         "default-src 'self'",
         `script-src 'nonce-${nonce}' https://checkout.razorpay.com`,
         `style-src 'nonce-${nonce}'`,
-        "frame-src https://api.razorpay.com https://checkout.razorpay.com",
+        'frame-src https://api.razorpay.com https://checkout.razorpay.com',
         "connect-src 'self' https://*.razorpay.com",
         "img-src 'self' data: https://*.razorpay.com",
         "frame-ancestors 'none'",

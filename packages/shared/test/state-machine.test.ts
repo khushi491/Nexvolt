@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { assertTransition, BOOKING_TRANSITIONS, canTransition, InvalidTransitionError } from '../src/booking-state-machine';
+import {
+  assertTransition,
+  BOOKING_TRANSITIONS,
+  canTransition,
+  InvalidTransitionError,
+} from '../src/booking-state-machine';
 import { BookingStatus } from '../src/enums';
 
 describe('booking state machine', () => {
@@ -21,7 +26,9 @@ describe('booking state machine', () => {
     expect(canTransition('CONFIRMED', 'COMPLETED', 'SYSTEM')).toBe(false);
     expect(BOOKING_TRANSITIONS.SETTLED).toHaveLength(0);
     expect(BOOKING_TRANSITIONS.CANCELLED).toHaveLength(0);
-    expect(() => assertTransition('CANCELLED', 'CONFIRMED', 'SYSTEM')).toThrow(InvalidTransitionError);
+    expect(() => assertTransition('CANCELLED', 'CONFIRMED', 'SYSTEM')).toThrow(
+      InvalidTransitionError,
+    );
   });
   it('only lets hosts approve manual requests', () => {
     expect(canTransition('AWAITING_HOST_APPROVAL', 'HELD', 'HOST')).toBe(true);
@@ -34,6 +41,7 @@ describe('booking state machine', () => {
   });
   it('every transition target is a known status', () => {
     const all = new Set(Object.values(BookingStatus));
-    for (const rules of Object.values(BOOKING_TRANSITIONS)) for (const r of rules) expect(all.has(r.to)).toBe(true);
+    for (const rules of Object.values(BOOKING_TRANSITIONS))
+      for (const r of rules) expect(all.has(r.to)).toBe(true);
   });
 });

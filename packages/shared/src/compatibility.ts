@@ -52,10 +52,12 @@ export function checkCompatibility(
   chargerCurrent: CurrentType,
 ): CompatibilityResult {
   const common = compatibleConnectors(vehicle, chargerConnectors);
-  if (common.length === 0) return { compatible: false, reason: 'NO_COMMON_CONNECTOR', connectors: [] };
+  if (common.length === 0)
+    return { compatible: false, reason: 'NO_COMMON_CONNECTOR', connectors: [] };
   const withPower = common
     .map((c) => ({ ...c, effectiveKw: effectivePowerKw(c, chargerCurrent, vehicle) }))
     .filter((c) => c.effectiveKw > 0);
-  if (withPower.length === 0) return { compatible: false, reason: 'CURRENT_NOT_SUPPORTED', connectors: [] };
+  if (withPower.length === 0)
+    return { compatible: false, reason: 'CURRENT_NOT_SUPPORTED', connectors: [] };
   return { compatible: true, connectors: withPower };
 }

@@ -34,7 +34,13 @@ export type LocState =
   | { kind: 'ready'; lat: number; lng: number; label: string; source: 'gps' | 'manual' };
 
 export function useUserLocation(initial: Place = PLACES[0]!) {
-  const [loc, setLoc] = useState<LocState>({ kind: 'ready', lat: initial.lat, lng: initial.lng, label: `${initial.label}, ${initial.city}`, source: 'manual' });
+  const [loc, setLoc] = useState<LocState>({
+    kind: 'ready',
+    lat: initial.lat,
+    lng: initial.lng,
+    label: `${initial.label}, ${initial.city}`,
+    source: 'manual',
+  });
   const locate = useCallback(async () => {
     setLoc({ kind: 'locating' });
     try {
@@ -44,11 +50,27 @@ export function useUserLocation(initial: Place = PLACES[0]!) {
         return;
       }
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      setLoc({ kind: 'ready', lat: pos.coords.latitude, lng: pos.coords.longitude, label: 'Near you', source: 'gps' });
+      setLoc({
+        kind: 'ready',
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        label: 'Near you',
+        source: 'gps',
+      });
     } catch {
       setLoc({ kind: 'denied' });
     }
   }, []);
-  const choose = useCallback((p: Place) => setLoc({ kind: 'ready', lat: p.lat, lng: p.lng, label: `${p.label}, ${p.city}`, source: 'manual' }), []);
+  const choose = useCallback(
+    (p: Place) =>
+      setLoc({
+        kind: 'ready',
+        lat: p.lat,
+        lng: p.lng,
+        label: `${p.label}, ${p.city}`,
+        source: 'manual',
+      }),
+    [],
+  );
   return { loc, locate, choose };
 }
