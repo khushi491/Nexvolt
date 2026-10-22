@@ -1,0 +1,53 @@
+# Local development services for Nexvolt. NOT a production topology.
+# Host ports are offset (55432, 56379, 58333) to avoid clashing with other local stacks.
+name: nexvolt
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: nexvolt
+      POSTGRES_PASSWORD: nexvolt_local_only
+      POSTGRES_DB: nexvolt
+    ports:
+      - "55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexvolt -d nexvolt"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "56379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # S3-compatible object storage for local dev (SeaweedFS S3 gateway).
+  # MinIO images are no longer pullable anonymously from Docker Hub, so SeaweedFS is used instead.
+  # Production uses AWS S3 with private buckets + presigned URLs.
+  s3:
+    image: chrislusf/seaweedfs:latest
+    command: ["server", "-s3", "-s3.port=8333", "-s3.config=/etc/seaweedfs/s3.json", "-dir=/data"]
+    ports:
+      - "58333:8333"
+    volumes:
+      - s3data:/data
+      - ./seaweedfs-s3.json:/etc/seaweedfs/s3.json:ro
+
+  # The private bucket is created by the API at startup (StorageService.ensureBucket);
+  # no public/anonymous policy is ever applied.
+
+volumes:
+  pgdata:
+  redisdata:
+  s3data:

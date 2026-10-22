@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "nexvolt_local",
+      "credentials": [{ "accessKey": "nexvolt_local", "secretKey": "nexvolt_local_secret" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}

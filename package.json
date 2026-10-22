@@ -1,0 +1,30 @@
+{
+  "name": "nexvolt",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Nexvolt — peer-to-peer EV charging marketplace (MVP, not production-ready)",
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "build:packages": "pnpm --filter @nexvolt/shared --filter @nexvolt/api-client build",
+    "dev:api": "pnpm --filter @nexvolt/api dev",
+    "dev:web": "pnpm --filter @nexvolt/web dev",
+    "dev:mobile": "pnpm --filter @nexvolt/mobile start",
+    "db:migrate": "pnpm --filter @nexvolt/api prisma:migrate",
+    "db:seed": "pnpm --filter @nexvolt/api seed",
+    "db:reset": "pnpm --filter @nexvolt/api db:reset",
+    "typecheck": "pnpm -r --parallel typecheck",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "~5.6.3"
+  }
+}
