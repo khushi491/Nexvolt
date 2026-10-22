@@ -1,0 +1,54 @@
+# Decisions & limitations
+
+## Key decisions
+
+| # | Decision | Why |
+|---|---|---|
+| D1 | Shared pure-TypeScript domain package (`@nexvolt/shared`) for state machine, pricing, availability, metering, schemas | One implementation of business rules for API, web and mobile; unit-testable without I/O |
+| D2 | Zod schemas → NestJS DTOs (`nestjs-zod`) and OpenAPI component schemas generated from the same zod | Validation, client forms and API docs can't drift |
+| D3 | Booking state persisted with compare-and-set + event log; `AVAILABLE` is not a row state; `AWAITING_HOST_APPROVAL` added | Concurrent writers (webhook, job, user) can't both win; full history for disputes |
+| D4 | Double-booking prevention by PostgreSQL exclusion constraint, plus a per-charger advisory lock | Correct under concurrency without distributed locks; the lock removes a real deadlock found by the 8-way race test |
+| D5 | Holds occupy capacity exactly like confirmed bookings and expire lazily + by job | No overbooking during checkout; consistent expiry |
+| D6 | Payment provider adapter (Razorpay REST, DEMO behind `LOCAL_DEMO_MODE`) with a single idempotent `applyProviderPayment` path | Callbacks, webhooks, reconciliation and demo all converge on one code path; reordering-safe |
+| D7 | Hosted checkout page served by the API (payment-scoped short-lived token, nonce CSP) | Works in a mobile WebView (Expo Go) and on web without native SDKs |
+| D8 | Late payments revive an expired booking only if the slot is still free, else auto-refund | Never confirm an overlapping booking, never keep money for nothing |
+| D9 | Per-kWh = prepay an estimate, settle on verified readings, refund unused; never charge above prepaid | Razorpay capture must equal the authorised amount; avoids surprise charges |
+| D10 | kWh pricing disabled by default (`kwhPricingEnabled=false`) and only for chargers with an accepted calibration certificate | Electricity resale/metering rules must be reviewed first |
+| D11 | Admin-managed payouts with mandatory bank reference; ledger states Pending → Eligible → In payout → Paid out | Split settlement (Route) needs separate onboarding; never imply money moved |
+| D12 | Approximate public location = random 200–500 m offset generated once | Can't be averaged away by repeated queries |
+| D13 | Field-level AES-256-GCM for exact address, access instructions, emergency phone | Defence in depth beyond disk encryption |
+| D14 | Web refresh token in httpOnly SameSite=Strict cookie via Next route handlers; mobile in SecureStore | Keep long-lived credentials away from page JavaScript |
+| D15 | Two-tier verification: a listing is bookable only when VERIFIED by an admin (requires ID-verified host + accepted property authorisation + electrical safety certificate + checklist). "Verified-only" is therefore always on; the driver filter offers "verified meter" instead | Safety first; avoids a meaningless filter |
+| D16 | Commission deducted from the host's charging fee; optional driver service fee (default 0) shown as its own line | Fee transparency; no hidden markups |
+| D17 | Gateway fee bearer configurable (default host) | Business choice to confirm |
+| D18 | IST treated as fixed UTC+05:30 (no DST) for availability maths | Deterministic, no tz database needed; other timezones out of scope |
+| D19 | SeaweedFS for local S3 | MinIO images are no longer pullable anonymously; production uses AWS S3 |
+| D20 | Node 22 for the repo | Expo SDK 58 tooling requires ≥ 22.13; AWS SDK v3 will require 22 from 2027 |
+
+## Limitations (known, intentional for the MVP)
+
+**Integrations not exercised against real providers** (no credentials in this environment):
+- Razorpay: adapter implemented against the documented REST API (orders, payment fetch, capture, refunds, signatures, webhooks) and tested with an in-memory fake that uses the real signature maths. **Not run against Razorpay sandbox.** UPI is available through Razorpay Checkout once configured.
+- Twilio Verify (OTP), Firebase Cloud Messaging (push), Google Maps keys for store builds. Local development uses the OTP emulator; push is recorded in-app and delivery is skipped.
+- India SMS requires DLT template registration — not done.
+
+**Product/ops simplifications:**
+- No automated KYC (Aadhaar/DigiLocker/PAN via a licensed provider). Identity is reviewed manually from uploaded documents; uploading never self-verifies.
+- No site inspections; approval is document-based.
+- No hardware control or telemetry. `ChargerAdapter` exists; the OCPP adapter is a disabled placeholder.
+- No in-app camera capture for meter evidence on mobile yet (API supports evidence upload; web/API flows tested). Needs `expo-image-picker`.
+- Address search uses preset neighbourhoods; street-level geocoding needs a Places key.
+- Map basemap on the web admin geo view is a schematic; mobile maps work in Expo Go without a key, store builds need keys.
+- Host listing creation/editing is on the web portal; mobile host mode covers queue, sessions, pause/publish and earnings.
+- Receipts are payment receipts, **not GST tax invoices**.
+- No GST computation (service-fee tax defaults to 0 and must be configured after tax advice).
+- Terms/Privacy text are placeholders (`termsVersion 2026-10-v1`); deletion requests are recorded for manual handling.
+- No dark mode yet (light mode first, tokens ready).
+- English only; strings are not yet extracted for i18n (formatting is `en-IN`).
+- iOS push via FCM needs the Firebase iOS SDK + APNs key in a dev/store build.
+- Web portal CSP allows `'unsafe-inline'` scripts (Next.js hydration); tighten with nonces before production.
+- Rate limiting is per-instance in memory for route throttles (OTP limits are DB-backed and global). Use a Redis throttler storage when running multiple API instances.
+- Settings are cached for 5 s per instance.
+- Seed data and the vehicle catalog are indicative and fictional where marked; vehicle specs must be checked against manufacturer data.
+
+**Not validated (must be before launch):** security penetration test, legal/regulatory review (see COMPLIANCE.md), payments compliance and settlement model with the gateway, tax treatment, electrical-safety and meter-accuracy requirements with a qualified electrical engineer, insurance and liability, accessibility audit with assistive-technology users, load testing.
