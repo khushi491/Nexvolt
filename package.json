@@ -10,7 +10,7 @@
   "scripts": {
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
-    "build:packages": "pnpm --filter @nexvolt/shared --filter @nexvolt/api-client build",
+    "build:packages": "pnpm --filter @nexvolt/shared build && pnpm --filter @nexvolt/api-client --filter @nexvolt/ui-tokens build",
     "dev:api": "pnpm --filter @nexvolt/api dev",
     "dev:web": "pnpm --filter @nexvolt/web dev",
     "dev:mobile": "pnpm --filter @nexvolt/mobile start",
