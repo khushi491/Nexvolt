@@ -57,9 +57,7 @@ export default function LoginPage() {
     } catch (x) {
       if (x instanceof ApiError && x.code === 'CONSENT_REQUIRED') {
         setNeedsConsent(true);
-        setError('New here? Please accept the Terms and Privacy Notice, then request a new code.');
-        setStep('phone');
-        setCode('');
+        setError(null);
       } else setError(errorMessage(x));
     } finally {
       setBusy(false);
@@ -92,13 +90,7 @@ export default function LoginPage() {
                       <Input id="phone" inputMode="numeric" autoComplete="tel-national" className="rounded-l-none" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="98765 43210" aria-invalid={!!error} />
                     </div>
                   </Field>
-                  {needsConsent && (
-                    <label className="flex items-start gap-3 rounded-md border border-line p-3 text-sm">
-                      <input type="checkbox" className="mt-1 h-4 w-4 accent-[#0B7A6E]" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-                      <span>I agree to the Nexvolt Terms of Service and Privacy Notice (draft v{TERMS_VERSION}) and consent to processing of my data to provide the service.</span>
-                    </label>
-                  )}
-                  <Button type="submit" className="w-full" loading={busy} disabled={needsConsent && !consent}>Send code</Button>
+                  <Button type="submit" className="w-full" loading={busy}>Send code</Button>
                 </form>
               ) : (
                 <form onSubmit={verify} className="mt-6 space-y-4">
@@ -108,7 +100,13 @@ export default function LoginPage() {
                   <Field label={`Code sent to +91 ${phone}`} htmlFor="code" error={error ?? undefined}>
                     <Input id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} autoFocus aria-invalid={!!error} />
                   </Field>
-                  <Button type="submit" className="w-full" loading={busy} disabled={code.length !== 6}>Verify & continue</Button>
+                  {needsConsent && (
+                    <label className="flex items-start gap-3 rounded-md border border-teal bg-teal-soft p-3 text-sm">
+                      <input type="checkbox" className="mt-1 h-4 w-4 accent-[#0B7A6E]" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+                      <span>Welcome to Nexvolt! I agree to the Terms of Service and Privacy Notice (draft v{TERMS_VERSION}) and consent to processing of my data to provide the service.</span>
+                    </label>
+                  )}
+                  <Button type="submit" className="w-full" loading={busy} disabled={code.length !== 6 || (needsConsent && !consent)}>{needsConsent ? 'Accept & create account' : 'Verify & continue'}</Button>
                   <Button type="button" variant="link" onClick={() => { setStep('phone'); setError(null); }}>Use a different number</Button>
                 </form>
               )}

@@ -87,6 +87,14 @@ export class AuthService {
     else ok = false;
     if (!ok) throw invalid;
 
+    // New users must consent before an account is created. Check this BEFORE consuming the
+    // code so the user can tick the box and resubmit the same code (no resend / cooldown).
+    const consentGiven = input.acceptTerms === true && input.termsVersion === TERMS_VERSION;
+    const existing = await this.prisma.user.findUnique({ where: { phone: input.phone }, select: { id: true } });
+    if (!existing && !consentGiven) {
+      throw new AppError('CONSENT_REQUIRED', 'Please accept the Terms and Privacy Notice to continue', HttpStatus.UNPROCESSABLE_ENTITY, { termsVersion: TERMS_VERSION });
+    }
+
     const consumed = await this.prisma.otpChallenge.updateMany({
       where: { id: challenge.id, consumedAt: null },
       data: { consumedAt: new Date() },
@@ -97,11 +105,7 @@ export class AuthService {
     if (user && user.status !== 'ACTIVE') {
       throw new AppError('ACCOUNT_INACTIVE', 'This account is not active. Contact support.', HttpStatus.FORBIDDEN);
     }
-    const consentGiven = input.acceptTerms === true && input.termsVersion === TERMS_VERSION;
     if (!user) {
-      if (!consentGiven) {
-        throw new AppError('CONSENT_REQUIRED', 'Please accept the Terms and Privacy Notice to continue', HttpStatus.UNPROCESSABLE_ENTITY, { termsVersion: TERMS_VERSION });
-      }
       user = await this.prisma.user.create({
         data: {
           phone: input.phone,

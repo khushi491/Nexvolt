@@ -63,5 +63,7 @@ export async function logout(): Promise<void> {
 
 export function errorMessage(e: unknown): string {
   if (e instanceof ApiError) return e.message;
+  if (e instanceof TypeError) return 'Network error — check your connection and try again.';
+  if (e instanceof Error && e.message) return e.message;
   return 'Something went wrong. Please try again.';
 }

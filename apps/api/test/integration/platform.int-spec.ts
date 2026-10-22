@@ -46,6 +46,9 @@ describe('Search, auth, sessions, payouts and authorisation (integration)', () =
       await ctx.http().post('/api/v1/auth/otp/request').send({ phone }).expect(200);
       const noConsent = await ctx.http().post('/api/v1/auth/otp/verify').send({ phone, code: '123456' }).expect(422);
       expect(noConsent.body.code).toBe('CONSENT_REQUIRED');
+      // The same code still works once consent is given (not burned by the consent check).
+      const consented = await ctx.http().post('/api/v1/auth/otp/verify').send({ phone, code: '123456', acceptTerms: true, termsVersion: '2026-10-v1' }).expect(200);
+      expect(consented.body.user.phone).toBe('+919876500001');
       await ctx.prisma.otpChallenge.deleteMany();
       await ctx.http().post('/api/v1/auth/otp/request').send({ phone }).expect(200);
       for (let i = 0; i < 5; i++) await ctx.http().post('/api/v1/auth/otp/verify').send({ phone, code: '000000' }).expect(401);
@@ -53,7 +56,7 @@ describe('Search, auth, sessions, payouts and authorisation (integration)', () =
       expect(locked.body.code).toBe('OTP_LOCKED');
       await ctx.prisma.otpChallenge.deleteMany();
       await ctx.http().post('/api/v1/auth/otp/request').send({ phone }).expect(200);
-      const ok = await ctx.http().post('/api/v1/auth/otp/verify').send({ phone, code: '123456', acceptTerms: true, termsVersion: '2026-10-v1' }).expect(200);
+      const ok = await ctx.http().post('/api/v1/auth/otp/verify').send({ phone, code: '123456' }).expect(200);
       const r1 = await ctx.http().post('/api/v1/auth/refresh').send({ refreshToken: ok.body.refreshToken }).expect(200);
       // Reusing the rotated token revokes the whole family.
       await ctx.http().post('/api/v1/auth/refresh').send({ refreshToken: ok.body.refreshToken }).expect(401);
