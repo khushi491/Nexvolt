@@ -19,12 +19,12 @@ Status: ✅ done · 🔜 next · ⬜ not started · ⛔ blocked on external inpu
 | 1.4 | Reviews, favourites, support tickets, incidents (auto-suspend), disputes | ✅ |
 | 1.5 | Admin API: overview, host KYC + charger approval queues, document review, suspensions, refunds, payouts, settings, audit log, CSV exports, privacy-safe geo overview, vehicle catalog | ✅ |
 | 1.6 | BullMQ jobs: hold expiry, settlement, payment reconciliation, reminders, push delivery | ✅ |
-| 1.7 | API integration tests (Supertest): double booking race, stale holds, webhook duplication/reordering, payout ledger, unauthorized access, geospatial search | 🔜 |
+| 1.7 | API integration tests (Supertest): double booking race, stale holds, webhook duplication/reordering, payout ledger, unauthorized access, geospatial search | ✅ |
 
 ## Phase 2 — Shared client + design system
 | # | Task | Status |
 |---|------|--------|
-| 2.1 | `packages/api-client` typed client + OpenAPI export script | ⬜ |
+| 2.1 | `packages/api-client` typed client + OpenAPI export script | 🔜 |
 | 2.2 | Design tokens package (palette, type, spacing) | ⬜ |
 
 ## Phase 3 — Web portal (Next.js, host + admin)

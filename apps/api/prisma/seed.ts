@@ -114,7 +114,7 @@ async function main() {
         accessInstructions: enc('SAMPLE: Ring the bell at gate 2; the security desk has your booking code.'),
         safetyNotes: 'Do not use if the cable or plug looks damaged. Report issues immediately.',
         pricingUnit: 'PER_HOUR', unitPriceMinor: c.price, cancellationPolicy: c.policy, approvalMode: c.approval,
-        addressLine1: enc(`${100 + i} Sample Street`), addressLine2: null,
+        addressLine1: enc(`${100 + i} Sample Street`)!, addressLine2: null,
         locality: c.locality, city: 'Bengaluru', state: 'Karnataka', pincode: '560038',
         publicLat: new Prisma.Decimal(pub.lat.toFixed(6)), publicLng: new Prisma.Decimal(pub.lng.toFixed(6)),
         connectors: { create: c.connectors.map(([t, p]) => ({ connectorType: t, powerKw: new Prisma.Decimal(p) })) },

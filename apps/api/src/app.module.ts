@@ -47,7 +47,11 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
         autoLogging: { ignore: (req) => req.url?.startsWith('/api/v1/health') ?? false },
       },
     }),
-    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
+    ThrottlerModule.forRoot({
+      throttlers: [{ name: 'default', ttl: 60_000, limit: 120 }],
+      // Integration tests exercise many requests from one IP; DB-level OTP limits still apply.
+      skipIf: () => env().NODE_ENV === 'test' && process.env.THROTTLE_IN_TESTS !== 'true',
+    }),
     jwtModule,
     PrismaModule,
     RedisModule,
