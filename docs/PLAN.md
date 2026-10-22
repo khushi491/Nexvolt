@@ -14,8 +14,8 @@ Status: ✅ done · 🔜 next · ⬜ not started · ⛔ blocked on external inpu
 | # | Task | Status |
 |---|------|--------|
 | 1.1 | Bookings: quote, create (idempotent, transactional hold), host approve/decline, cancel + refund policy, check-in, no-show, access reveal, events, receipt, host booking queue | ✅ |
-| 1.2 | Payments: order creation, hosted checkout page (Razorpay + DEMO), signature verification, webhooks with dedupe/reordering, reconciliation, refunds, ledger posting | 🔜 |
-| 1.3 | Charging sessions: both-party start/end, meter readings + evidence, assessment → complete or auto-dispute, kWh settlement refund, ChargerAdapter (manual + OCPP stub) | ⬜ |
+| 1.2 | Payments: order creation, hosted checkout page (Razorpay + DEMO), signature verification, webhooks with dedupe/reordering, reconciliation, refunds, ledger posting | ✅ |
+| 1.3 | Charging sessions: both-party start/end, meter readings + evidence, assessment → complete or auto-dispute, kWh settlement refund, ChargerAdapter (manual + OCPP stub) | 🔜 |
 | 1.4 | Reviews, favourites, support tickets, incidents (auto-suspend), disputes | ⬜ |
 | 1.5 | Admin API: overview, host KYC + charger approval queues, document review, suspensions, refunds, payouts, settings, audit log, CSV exports, privacy-safe geo overview, vehicle catalog | ⬜ |
 | 1.6 | BullMQ jobs: hold expiry, settlement, payment reconciliation, reminders, push delivery | ⬜ |
@@ -60,3 +60,6 @@ Status: ✅ done · 🔜 next · ⬜ not started · ⛔ blocked on external inpu
 | Google Maps API key | Map display, geocoding | ⛔ |
 | Firebase service account (+ APNs for iOS) | Push notifications | ⛔ |
 | Legal, tax, payments-compliance and electrical-safety review | Any real launch | ⛔ |
+
+## Notes
+- 1.2: Razorpay adapter (orders, capture, refunds, signature + webhook verification) is implemented against the documented REST API but has **not** been exercised against Razorpay sandbox — no test keys yet. All flows were verified end-to-end with the DEMO adapter.
