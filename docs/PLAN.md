@@ -13,8 +13,8 @@ Status: ✅ done · 🔜 next · ⬜ not started · ⛔ blocked on external inpu
 ## Phase 1 — API: marketplace flows
 | # | Task | Status |
 |---|------|--------|
-| 1.1 | Bookings: quote, create (idempotent, transactional hold), host approve/decline, cancel + refund policy, check-in, no-show, access reveal, events, receipt, host booking queue | 🔜 |
-| 1.2 | Payments: order creation, hosted checkout page (Razorpay + DEMO), signature verification, webhooks with dedupe/reordering, reconciliation, refunds, ledger posting | ⬜ |
+| 1.1 | Bookings: quote, create (idempotent, transactional hold), host approve/decline, cancel + refund policy, check-in, no-show, access reveal, events, receipt, host booking queue | ✅ |
+| 1.2 | Payments: order creation, hosted checkout page (Razorpay + DEMO), signature verification, webhooks with dedupe/reordering, reconciliation, refunds, ledger posting | 🔜 |
 | 1.3 | Charging sessions: both-party start/end, meter readings + evidence, assessment → complete or auto-dispute, kWh settlement refund, ChargerAdapter (manual + OCPP stub) | ⬜ |
 | 1.4 | Reviews, favourites, support tickets, incidents (auto-suspend), disputes | ⬜ |
 | 1.5 | Admin API: overview, host KYC + charger approval queues, document review, suspensions, refunds, payouts, settings, audit log, CSV exports, privacy-safe geo overview, vehicle catalog | ⬜ |

@@ -128,6 +128,10 @@ export class ChargerMapper {
     return { lat: Number(rows[0]?.lat ?? 0), lng: Number(rows[0]?.lng ?? 0) };
   }
 
+  accessInstructions(c: Charger): string | null {
+    return this.crypto.decrypt(c.accessInstructions);
+  }
+
   privateAddress(c: Charger) {
     return {
       line1: this.crypto.decrypt(c.addressLine1),
