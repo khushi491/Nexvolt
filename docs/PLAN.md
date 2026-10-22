@@ -41,8 +41,8 @@ Status: ✅ done · 🔜 next · ⬜ not started · ⛔ blocked on external inpu
 | 4.1 | Scaffold Expo Router app, theme + components, onboarding, OTP login + consent | ✅ |
 | 4.2 | Driver: profile, vehicles, Explore (map/list, filters), charger detail | ✅ |
 | 4.3 | Driver: booking flow, payment (WebView checkout), booking detail, navigation, session, receipt, review, support | ✅ |
-| 4.4 | Host mode: dashboard, chargers, calendar, earnings, booking queue + meter readings | 🔜 |
-| 4.5 | React Native Testing Library tests | ⬜ |
+| 4.4 | Host mode: dashboard, chargers, calendar, earnings, booking queue + meter readings | ✅ |
+| 4.5 | React Native Testing Library tests | 🔜 |
 
 ## Phase 5 — Docs, ops, hardening
 | # | Task | Status |

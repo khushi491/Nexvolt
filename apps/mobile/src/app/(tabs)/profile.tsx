@@ -39,7 +39,7 @@ export default function Profile() {
       </Card>
       <Card style={{ paddingVertical: 4 }}>
         {isHost ? (
-          <Item icon="business-outline" title="Switch to host mode" sub="Bookings, sessions and earnings" href="/host" />
+          <Item icon="business-outline" title="Switch to host mode" sub="Bookings, sessions and earnings" onPress={() => router.replace('/host')} />
         ) : (
           <Item icon="flash-outline" title="Share your charger" sub="Become a host — set up on the web portal" onPress={() => Alert.alert('Become a host', 'Host onboarding (documents, availability and verification) is done on the Nexvolt host portal on a computer.')} />
         )}
