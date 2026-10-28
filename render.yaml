@@ -10,7 +10,7 @@ services:
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
     # Free services have no pre-deploy hook. Run migrations before starting the API.
-    dockerCommand: /bin/sh -c 'node_modules/.bin/prisma migrate deploy && exec node dist/main.js'
+    dockerCommand: /bin/sh scripts/start-hosted.sh
     healthCheckPath: /api/v1/health/live
     autoDeployTrigger: checksPass
     envVars:

@@ -79,7 +79,9 @@ eligible trial allowances if your requirement is no spend. Account creation
 alone does not guarantee free SMS delivery.
 
 Free Render services cannot run pre-deploy hooks or one-off jobs, so the Docker
-command runs `prisma migrate deploy` and only starts the API if migrations pass.
+command runs `scripts/start-hosted.sh`, which applies migrations and only starts
+the API if migrations pass. Keeping this in a script avoids nested shell quoting
+differences between deployment providers.
 Migrations therefore also run on cold starts; keep schema changes compatible
 with the prior application version. Do not run reset/fictional seeds against the
 hosted database. For first-admin setup, run `infra/bootstrap-admin.sql` using an
