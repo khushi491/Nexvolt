@@ -1,15 +1,16 @@
-# Paid staging resources. Review Render's cost estimate before creating this Blueprint.
+# Free demo API only. Database, storage, and Redis use external free-tier services.
 # Keep the repository root as the Docker build context.
 services:
   - type: web
     name: nexvolt-staging-api
     runtime: docker
     region: singapore
-    plan: 0.5c-512mb
+    plan: free
     numInstances: 1
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
-    preDeployCommand: node_modules/.bin/prisma migrate deploy
+    # Free services have no pre-deploy hook. Run migrations before starting the API.
+    dockerCommand: /bin/sh -c 'node_modules/.bin/prisma migrate deploy && exec node dist/main.js'
     healthCheckPath: /api/v1/health/live
     autoDeployTrigger: checksPass
     envVars:
@@ -18,14 +19,9 @@ services:
       - key: PORT
         value: '4000'
       - key: DATABASE_URL
-        fromDatabase:
-          name: nexvolt-staging-db
-          property: connectionString
+        sync: false
       - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: nexvolt-staging-redis
-          property: connectionString
+        sync: false
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: OTP_HMAC_SECRET
@@ -53,7 +49,9 @@ services:
       - key: LOCAL_DEMO_MODE
         value: 'false'
       - key: S3_REGION
-        value: ap-south-1
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false
       - key: S3_BUCKET
         sync: false
       - key: S3_ACCESS_KEY_ID
@@ -61,26 +59,8 @@ services:
       - key: S3_SECRET_ACCESS_KEY
         sync: false
       - key: S3_FORCE_PATH_STYLE
-        value: 'false'
+        value: 'true'
       - key: S3_AUTO_CREATE_BUCKET
         value: 'false'
       - key: LOG_LEVEL
         value: info
-
-  - type: keyvalue
-    name: nexvolt-staging-redis
-    region: singapore
-    plan: 256mb
-    maxmemoryPolicy: noeviction
-    persistenceMode: journal-snapshot
-    ipAllowList: []
-
-databases:
-  - name: nexvolt-staging-db
-    region: singapore
-    plan: 0.1c-256mb
-    postgresMajorVersion: '16'
-    databaseName: nexvolt_staging
-    user: nexvolt
-    diskSizeGB: 5
-    ipAllowList: []

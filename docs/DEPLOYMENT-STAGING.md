@@ -1,5 +1,10 @@
 # Staging deployment: Vercel, Render, AWS S3, and Expo
 
+**Superseded for the current free demo:** follow [the free deployment runbook](DEPLOYMENT-FREE.md).
+The root `render.yaml` now creates only a free API service. The paid resource
+descriptions below are a reference for a future paid setup and do not describe
+the current Blueprint.
+
 This runbook deploys an isolated staging environment for testing admin, host, and
 customer flows. It does not enable real bookings or constitute production launch.
 The existing [AWS production runbook](DEPLOYMENT.md) remains available separately.

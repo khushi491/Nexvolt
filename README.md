@@ -61,7 +61,8 @@ API integration tests use a separate `nexvolt_test` database (created automatica
 
 ## Key documents
 
-- [Staging deployment: Vercel + Render + Expo](docs/DEPLOYMENT-STAGING.md)
+- [Free demo deployment: Vercel + Render + Supabase](docs/DEPLOYMENT-FREE.md)
+- [Paid staging reference](docs/DEPLOYMENT-STAGING.md)
 
 - [Architecture](docs/ARCHITECTURE.md) · [Database & ERD](docs/DATABASE.md) · [API reference](docs/API.md) (+ [OpenAPI](docs/openapi.json))
 - [Decisions & limitations](docs/DECISIONS.md) · [Feature inventory](docs/FEATURES.md) · [Integrations & credentials](docs/INTEGRATIONS.md)
