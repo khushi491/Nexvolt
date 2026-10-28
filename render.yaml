@@ -1,10 +1,10 @@
-# Free demo API only. Database, storage, and Redis use external free-tier services.
+# Free demo API and Redis. Supabase supplies the database and private storage.
 # Keep the repository root as the Docker build context.
 services:
   - type: web
     name: nexvolt-staging-api
     runtime: docker
-    region: singapore
+    region: virginia
     plan: free
     numInstances: 1
     dockerfilePath: ./apps/api/Dockerfile
@@ -21,7 +21,10 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: REDIS_URL
-        sync: false
+        fromService:
+          type: keyvalue
+          name: nexvolt-demo-redis
+          property: connectionString
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: OTP_HMAC_SECRET
@@ -64,3 +67,11 @@ services:
         value: 'false'
       - key: LOG_LEVEL
         value: info
+
+  - type: keyvalue
+    name: nexvolt-demo-redis
+    region: virginia
+    plan: free
+    maxmemoryPolicy: noeviction
+    persistenceMode: off
+    ipAllowList: []

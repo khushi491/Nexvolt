@@ -2,13 +2,13 @@
 
 The current target is a small demo with no paid infrastructure: Vercel for the
 portal/customer web app, Render Free for the API, Supabase Free for PostgreSQL
-and private uploads, and a separate free Redis service. The root `render.yaml`
-creates only one Free API service; it creates no paid database or Redis instance.
+and private uploads, and Render Free Key Value for Redis. The root `render.yaml`
+configures a Free API service and a Free Key Value instance; neither is a paid plan.
 
 ## 1. Create a Supabase Free project
 
 Create a dedicated Nexvolt demo project in a Free organization. Choose a region
-near the API (Render is configured for Singapore). Save the database password in
+near the API (Render is configured for Virginia). Save the database password in
 a password manager. A Supabase account alone does not create the database.
 
 Use the project's **Connect** dialog to copy the **Session pooler** URI (port
@@ -54,18 +54,18 @@ PUT/GET requests, MIME validation, and signed URL handling after deployment.
 
 ## 3. Configure free Redis
 
-Create a Redis Cloud **Free** database (not a paid trial), set its eviction policy
-to `noeviction`, and copy its connection URI into Render's `REDIS_URL` secret.
-Use TLS if the selected free plan supports it; confirm the provided URI rather
-than changing its scheme blindly. Check that its connection limit accommodates
-the API and BullMQ workers. Free Redis Cloud has no disk persistence: queued work
-can disappear on restart. This deployment is for demos only.
+The Blueprint configures `nexvolt-demo-redis` on Render's **Free** plan in Virginia,
+with `noeviction`, persistence disabled, and an empty external IP allowlist. The
+API uses its internal connection string, also in Virginia. Free Key Value has no
+disk persistence: queued work disappears on restart. This deployment is for demos
+only. Only one Free Key Value instance is allowed per workspace, so reuse the
+existing instance rather than creating a second one.
 
 ## 4. Deploy the free API
 
 Create a Render Blueprint from `codex/staging-deployment` (or `main` after merge)
-and root `render.yaml`. Confirm the service's plan is **Free**. Enter the external
-Supabase/Redis secrets above, plus:
+and root `render.yaml`. Confirm both resources use **Free** plans. Enter the
+external Supabase secrets above, plus:
 
 - `PII_ENCRYPTION_KEY`: `openssl rand -base64 32`; preserve it securely.
 - `API_PUBLIC_URL`: the actual API HTTPS origin allocated by Render.
@@ -102,11 +102,12 @@ NEXT_PUBLIC_S3_ORIGIN=https://PROJECT_REF.storage.supabase.co
 the `/storage/v1/s3` path. The browser CSP is built with this value. No database
 password or S3 secret belongs in Vercel's public environment variables.
 
-Export the customer app with `EXPO_PUBLIC_API_URL` pointing to the hosted API.
-Its Expo web output is a single-page app; a separate Vercel static project needs
-the shared package build, Expo export, `dist` output directory, and a fallback
-to `index.html` for application routes. Customer deployment configuration and
-hosted browser verification still need to be completed.
+Deploy a separate Vercel project with `apps/mobile` as its root, Node 22.x, and
+source files outside the root included. Set `EXPO_PUBLIC_API_URL` to the hosted
+API. `apps/mobile/vercel.json` builds shared packages, exports the Expo web app,
+publishes `dist`, and falls back to `index.html` for application routes. Add its
+actual stable origin to API CORS. Native signing and store builds are not needed
+for this customer browser deployment.
 
 ## Verification and free-tier limits
 
@@ -127,4 +128,4 @@ not needed for this deployment.
 - [Supabase database connections](https://supabase.com/docs/guides/database/connecting-to-postgres)
 - [Supabase S3 credentials](https://supabase.com/docs/guides/storage/s3/authentication)
 - [Render free service limits](https://render.com/docs/free)
-- [Redis Cloud persistence limits](https://redis.io/docs/latest/operate/rc/databases/configuration/data-persistence/)
+- [Render Free Key Value limits](https://render.com/docs/free#free-key-value)
