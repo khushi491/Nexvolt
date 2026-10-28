@@ -35,6 +35,10 @@ jobs:
       - run: pnpm build:packages
       - run: pnpm --filter @nexvolt/api prisma:generate
       - run: pnpm typecheck
+      - name: Export customer web app
+        run: pnpm --filter @nexvolt/mobile exec expo export --platform web
+        env:
+          EXPO_PUBLIC_API_URL: https://api.example.com
       - run: pnpm test
       - name: Build images
         run: |

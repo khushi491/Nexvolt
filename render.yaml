@@ -1,0 +1,86 @@
+# Paid staging resources. Review Render's cost estimate before creating this Blueprint.
+# Keep the repository root as the Docker build context.
+services:
+  - type: web
+    name: nexvolt-staging-api
+    runtime: docker
+    region: singapore
+    plan: 0.5c-512mb
+    numInstances: 1
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    preDeployCommand: node_modules/.bin/prisma migrate deploy
+    healthCheckPath: /api/v1/health/live
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: '4000'
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nexvolt-staging-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: nexvolt-staging-redis
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: OTP_HMAC_SECRET
+        generateValue: true
+      - key: PII_ENCRYPTION_KEY
+        sync: false
+      - key: API_PUBLIC_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: JOBS_ENABLED
+        value: 'true'
+      - key: OTP_PROVIDER
+        value: twilio_verify
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_VERIFY_SERVICE_SID
+        sync: false
+      - key: OTP_REQUESTS_PER_15MIN_PER_IP
+        value: '20'
+      - key: DISABLE_ROUTE_THROTTLING_FOR_TESTS
+        value: 'false'
+      - key: LOCAL_DEMO_MODE
+        value: 'false'
+      - key: S3_REGION
+        value: ap-south-1
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_FORCE_PATH_STYLE
+        value: 'false'
+      - key: S3_AUTO_CREATE_BUCKET
+        value: 'false'
+      - key: LOG_LEVEL
+        value: info
+
+  - type: keyvalue
+    name: nexvolt-staging-redis
+    region: singapore
+    plan: 256mb
+    maxmemoryPolicy: noeviction
+    persistenceMode: journal-snapshot
+    ipAllowList: []
+
+databases:
+  - name: nexvolt-staging-db
+    region: singapore
+    plan: 0.1c-256mb
+    postgresMajorVersion: '16'
+    databaseName: nexvolt_staging
+    user: nexvolt
+    diskSizeGB: 5
+    ipAllowList: []
