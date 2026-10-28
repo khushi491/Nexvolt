@@ -1,0 +1,77 @@
+# Free demo API and Redis. Supabase supplies the database and private storage.
+# Keep the repository root as the Docker build context.
+services:
+  - type: web
+    name: nexvolt-staging-api
+    runtime: docker
+    region: virginia
+    plan: free
+    numInstances: 1
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    # Free services have no pre-deploy hook. Run migrations before starting the API.
+    dockerCommand: /bin/sh scripts/start-hosted.sh
+    healthCheckPath: /api/v1/health/live
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: '4000'
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: nexvolt-demo-redis
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: OTP_HMAC_SECRET
+        generateValue: true
+      - key: PII_ENCRYPTION_KEY
+        sync: false
+      - key: API_PUBLIC_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: JOBS_ENABLED
+        value: 'true'
+      - key: OTP_PROVIDER
+        value: twilio_verify
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_VERIFY_SERVICE_SID
+        sync: false
+      - key: OTP_REQUESTS_PER_15MIN_PER_IP
+        value: '20'
+      - key: DISABLE_ROUTE_THROTTLING_FOR_TESTS
+        value: 'false'
+      - key: LOCAL_DEMO_MODE
+        value: 'false'
+      - key: S3_REGION
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_FORCE_PATH_STYLE
+        value: 'true'
+      - key: S3_AUTO_CREATE_BUCKET
+        value: 'false'
+      - key: LOG_LEVEL
+        value: info
+
+  - type: keyvalue
+    name: nexvolt-demo-redis
+    region: virginia
+    plan: free
+    maxmemoryPolicy: noeviction
+    persistenceMode: off
+    ipAllowList: []

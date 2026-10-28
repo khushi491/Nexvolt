@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Private Nexvolt staging uploads and a bucket-scoped Render IAM user (no access keys).
+Parameters:
+  PortalOrigin:
+    Type: String
+    Description: Exact staging portal HTTPS origin, without trailing slash.
+    AllowedPattern: '^https://[A-Za-z0-9][A-Za-z0-9.-]*(:[0-9]+)?$'
+  CustomerOrigin:
+    Type: String
+    Description: Exact staging customer HTTPS origin, without trailing slash.
+    AllowedPattern: '^https://[A-Za-z0-9][A-Za-z0-9.-]*(:[0-9]+)?$'
+Resources:
+  Uploads:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      VersioningConfiguration:
+        Status: Enabled
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - Ref: PortalOrigin
+              - Ref: CustomerOrigin
+            AllowedMethods: [GET, HEAD, PUT]
+            AllowedHeaders: [Content-Type, 'x-amz-*']
+            ExposedHeaders: [ETag]
+            MaxAge: 3600
+      Tags:
+        - Key: Application
+          Value: Nexvolt
+        - Key: Environment
+          Value: staging
+  UploadsPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: Uploads
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: RequireTLS
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - Fn::GetAtt: [Uploads, Arn]
+              - Fn::Sub: '${Uploads.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+  RenderStorageUser:
+    Type: AWS::IAM::User
+    Properties:
+      Policies:
+        - PolicyName: NexvoltStagingUploads
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource:
+                  Fn::GetAtt: [Uploads, Arn]
+              - Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:DeleteObject]
+                Resource:
+                  Fn::Sub: '${Uploads.Arn}/*'
+Outputs:
+  BucketName:
+    Value:
+      Ref: Uploads
+  BucketOrigin:
+    Value:
+      Fn::Sub: 'https://${Uploads}.s3.${AWS::Region}.${AWS::URLSuffix}'
+  RenderStorageUserName:
+    Description: Create a programmatic access key for this user and save it only in Render.
+    Value:
+      Ref: RenderStorageUser
